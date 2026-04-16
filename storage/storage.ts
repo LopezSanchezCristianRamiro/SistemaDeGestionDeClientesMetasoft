@@ -1,10 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-// Detecta si estamos en web o en mobile
 const isWeb = Platform.OS === "web";
 
-// Abstracción que funciona en web (localStorage) y mobile (AsyncStorage)
 const storage = {
   getItem: (key: string) => {
     if (isWeb) {

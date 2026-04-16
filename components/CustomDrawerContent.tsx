@@ -32,9 +32,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
     if (!pathname) return false;
     const cleanPath = pathname.replace(/\/\([^)]+\)/g, "");
     const isActive = cleanPath === route || cleanPath.startsWith(route + "/");
-    console.log(
-      `[Drawer] pathname: "${pathname}" -> clean: "${cleanPath}" | route: "${route}" | active: ${isActive}`,
-    );
     return isActive;
   };
 
@@ -45,7 +42,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
 
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
-      {/* Header: Perfil */}
       <View className="flex-row items-center px-5 py-8">
         <View className="w-12 h-12 rounded-2xl items-center justify-center bg-brand-primary">
           <Ionicons name="person-outline" size={26} color="white" />
@@ -60,7 +56,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         </View>
       </View>
 
-      {/* Lista de Navegación */}
       <View className="flex-1 mt-2">
         {DRAWER_ITEMS.map((item) => {
           const isActive = checkActive(item.route);
@@ -93,7 +88,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         })}
       </View>
 
-      {/* Footer */}
       <View className="p-6">
         <ThemedText className="text-xs text-gray-400 font-medium">
           Versión 1.0.4

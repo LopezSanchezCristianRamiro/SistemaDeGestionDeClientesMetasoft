@@ -1,4 +1,3 @@
-// app/(drawer)/_layout.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Stack } from "expo-router";
@@ -11,15 +10,11 @@ export default function DrawerGroupLayout() {
   const { isMobile } = useResponsive();
   const insets = useSafeAreaInsets();
 
-  // Header personalizado solo para móvil (sin position absolute)
   const CustomHeader = () => {
     if (!isMobile) return null;
 
     return (
-      <View
-        style={{ paddingTop: insets.top }}
-        className="bg-surface" // Fondo de tu aplicación (#F7F2F8)
-      >
+      <View style={{ paddingTop: insets.top }} className="bg-surface">
         <View className="h-14 flex-row items-center px-4">
           <Pressable
             onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}

@@ -1,4 +1,3 @@
-// app/_layout.tsx
 import { Drawer } from "expo-router/drawer";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback } from "react";
@@ -35,17 +34,12 @@ export default function RootLayout() {
             drawerType: isPermanentDrawer ? "permanent" : "front",
             drawerStyle: {
               width: 280,
-              // En modo permanente, quitamos sombra y borde
               ...(isPermanentDrawer && {
                 shadowOpacity: 0,
                 borderRightWidth: 0,
               }),
             },
-            // Deshabilitar gesto de deslizar en modo permanente
             swipeEnabled: !isPermanentDrawer,
-            // **CLAVE**: Ocultar el header del drawer cuando es permanente
-            // (así desaparece la flecha)
-            //headerShown: !isPermanentDrawer,
           }}
         >
           <Drawer.Screen

@@ -8,12 +8,6 @@ interface SistemaCardProps {
   onPress: (id: number) => void;
 }
 
-/**
- * SistemaCard: Flexbox Puro Full Responsive.
- * El tamaño mínimo asegura que las cards no sean demasiado pequeñas.
- * El crecimiento automático hace que ocupen el espacio disponible.
- * Sin cálculos: se adapta fluidamente a cualquier pantalla.
- */
 export const SistemaCard = memo(({ sistema, onPress }: SistemaCardProps) => {
   return (
     <TouchableOpacity

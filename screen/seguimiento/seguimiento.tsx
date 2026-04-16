@@ -105,29 +105,28 @@ function obtenerIniciales(nombreCompleto: string) {
   return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
 }
 
-/**
- * Adapta la respuesta real del backend al formato que usa la UI.
- * Si tu backend ya devuelve exactamente estos campos, puedes simplificar esto.
- */
 function mapApiToUi(data: any): SeguimientoResponse {
   const prospectosApi = Array.isArray(data?.prospectos)
     ? data.prospectos
     : Array.isArray(data?.data)
-    ? data.data
-    : [];
+      ? data.data
+      : [];
 
-  const prospectos: ProspectoItem[] = prospectosApi.map((item: any, index: number) => ({
-    id: Number(item.id ?? item.idProspecto ?? index + 1),
-    iniciales: item.iniciales ?? obtenerIniciales(item.nombre ?? "Sin nombre"),
-    nombre: item.nombre ?? "Sin nombre",
-    empresa: item.empresa ?? "Sin empresa",
-    fecha: item.fecha ?? item.fechaRegistro ?? "",
-    interes: item.interes ?? "BAJO",
-    rubro: item.rubro ?? item.modulo ?? item.servicio ?? "Sin rubro",
-    estado: item.estado ?? "Pendiente",
-    anticipo: formatearMoneda(item.anticipo ?? item.montoAnticipo ?? 0),
-    proximoPaso: item.proximoPaso ?? "Sin próximo paso",
-  }));
+  const prospectos: ProspectoItem[] = prospectosApi.map(
+    (item: any, index: number) => ({
+      id: Number(item.id ?? item.idProspecto ?? index + 1),
+      iniciales:
+        item.iniciales ?? obtenerIniciales(item.nombre ?? "Sin nombre"),
+      nombre: item.nombre ?? "Sin nombre",
+      empresa: item.empresa ?? "Sin empresa",
+      fecha: item.fecha ?? item.fechaRegistro ?? "",
+      interes: item.interes ?? "BAJO",
+      rubro: item.rubro ?? item.modulo ?? item.servicio ?? "Sin rubro",
+      estado: item.estado ?? "Pendiente",
+      anticipo: formatearMoneda(item.anticipo ?? item.montoAnticipo ?? 0),
+      proximoPaso: item.proximoPaso ?? "Sin próximo paso",
+    }),
+  );
 
   const totalProspectos =
     Number(data?.totalProspectos) ||
@@ -135,9 +134,7 @@ function mapApiToUi(data: any): SeguimientoResponse {
     prospectos.length;
 
   const conversion =
-    Number(data?.conversion) ||
-    Number(data?.totales?.conversion) ||
-    0;
+    Number(data?.conversion) || Number(data?.totales?.conversion) || 0;
 
   const altamenteInteresados =
     Number(data?.altamenteInteresados) ||
@@ -168,7 +165,6 @@ export default function SeguimientoScreenView() {
       setLoading(true);
       setError("");
 
-      // Cambia esta ruta si tu endpoint es otro
       const response = await httpClient.getAuth<any>(
         "/api/seguimiento",
         "No se pudo cargar el seguimiento",
