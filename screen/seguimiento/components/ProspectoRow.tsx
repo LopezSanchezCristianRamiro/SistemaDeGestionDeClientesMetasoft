@@ -58,14 +58,15 @@ export default function ProspectoRow({ item }: Props) {
 
   return (
     <View
-      className="mb-3 rounded-[18px] px-4 py-4"
+      className="mb-3 flex-row items-center rounded-[18px] px-4 py-4"
       style={{
         backgroundColor: "#ffffff",
         borderWidth: 1,
         borderColor: "#eee6ee",
       }}
     >
-      <View className="flex-row items-center">
+      {/* Prospecto & empresa */}
+      <View style={{ width: "33%" }} className="flex-row items-center pr-3">
         <View
           className="mr-3 h-11 w-11 items-center justify-center rounded-2xl"
           style={{ backgroundColor: "#f1edf3" }}
@@ -87,7 +88,58 @@ export default function ProspectoRow({ item }: Props) {
             {item.empresa} • {item.fecha}
           </ThemedText>
         </View>
+      </View>
 
+      {/* Interés */}
+      <View style={{ width: "11%" }} className="pr-3">
+        <ThemedText
+          className="text-[12px] font-extrabold"
+          style={{ color: interesColor }}
+        >
+          {item.interes}
+        </ThemedText>
+        <ThemedText className="mt-1 text-[12px] text-[#403744]">
+          {item.rubro}
+        </ThemedText>
+      </View>
+
+      {/* Estado */}
+      <View style={{ width: "16%" }} className="pr-3">
+        <View
+          className="self-start rounded-full px-3 py-1.5"
+          style={{ backgroundColor: estado.bg }}
+        >
+          <View className="flex-row items-center">
+            <View
+              className="mr-1.5 h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: estado.dot }}
+            />
+            <ThemedText
+              className="text-[11px] font-bold"
+              style={{ color: estado.text }}
+            >
+              {item.estado}
+            </ThemedText>
+          </View>
+        </View>
+      </View>
+
+      {/* Anticipo */}
+      <View style={{ width: "12%" }} className="pr-3">
+        <ThemedText className="text-[13px] font-extrabold text-[#2d2631]">
+          {formatMoney(item.anticipo)}
+        </ThemedText>
+      </View>
+
+      {/* Próximo paso */}
+      <View style={{ width: "18%" }} className="pr-3">
+        <ThemedText className="text-[12px] text-[#403744]">
+          {item.proximoPaso}
+        </ThemedText>
+      </View>
+
+      {/* Acciones */}
+      <View style={{ width: "10%" }} className="items-end">
         <Pressable
           className="rounded-2xl px-4 py-2"
           style={{
@@ -100,65 +152,6 @@ export default function ProspectoRow({ item }: Props) {
             Ver Detalles
           </ThemedText>
         </Pressable>
-      </View>
-
-      <View className="mt-4 flex-row flex-wrap gap-y-3">
-        <View className="w-1/4 pr-2">
-          <ThemedText className="text-[10px] uppercase tracking-[1px] text-[#a099a6]">
-            Interés
-          </ThemedText>
-          <ThemedText
-            className="mt-1 text-[12px] font-extrabold"
-            style={{ color: interesColor }}
-          >
-            {item.interes}
-          </ThemedText>
-          <ThemedText className="mt-1 text-[12px] text-[#403744]">
-            {item.rubro}
-          </ThemedText>
-        </View>
-
-        <View className="w-1/4 pr-2">
-          <ThemedText className="text-[10px] uppercase tracking-[1px] text-[#a099a6]">
-            Estado
-          </ThemedText>
-
-          <View
-            className="mt-1 self-start rounded-full px-3 py-1.5"
-            style={{ backgroundColor: estado.bg }}
-          >
-            <View className="flex-row items-center">
-              <View
-                className="mr-1.5 h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: estado.dot }}
-              />
-              <ThemedText
-                className="text-[11px] font-bold"
-                style={{ color: estado.text }}
-              >
-                {item.estado}
-              </ThemedText>
-            </View>
-          </View>
-        </View>
-
-        <View className="w-1/4 pr-2">
-          <ThemedText className="text-[10px] uppercase tracking-[1px] text-[#a099a6]">
-            Anticipo
-          </ThemedText>
-          <ThemedText className="mt-1 text-[13px] font-extrabold text-[#2d2631]">
-            {formatMoney(item.anticipo)}
-          </ThemedText>
-        </View>
-
-        <View className="w-1/4">
-          <ThemedText className="text-[10px] uppercase tracking-[1px] text-[#a099a6]">
-            Próximo Paso
-          </ThemedText>
-          <ThemedText className="mt-1 text-[12px] text-[#403744]">
-            {item.proximoPaso}
-          </ThemedText>
-        </View>
       </View>
     </View>
   );

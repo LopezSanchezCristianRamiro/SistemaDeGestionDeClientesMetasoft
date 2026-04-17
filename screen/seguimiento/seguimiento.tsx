@@ -46,46 +46,51 @@ export default function SeguimientoScreen() {
       style={{ backgroundColor: "#f7f4f8" }}
       contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
     >
-      <View className="flex-row items-start justify-between gap-4">
-        <View className="flex-1">
-          <ThemedText className="text-[42px] leading-[42px] font-extrabold text-[#201b24]">
+      {/* CABECERA */}
+      <View className="flex-row items-start justify-between gap-6">
+        <View className="max-w-[520px] flex-1">
+          <ThemedText className="text-[58px] leading-[58px] font-extrabold text-[#201b24]">
             Historial de{"\n"}Seguimiento
           </ThemedText>
 
-          <ThemedText className="mt-3 max-w-[420px] text-[15px] leading-6 text-[#726b77]">
-            Gestiona los prospectos capturados y supervisa el embudo comercial
-            desde una sola vista.
+          <ThemedText className="mt-4 text-[15px] leading-7 text-[#726b77]">
+            Gestiona los prospectos capturados y supervisa el embudo
+            comercial desde una sola vista.
           </ThemedText>
         </View>
 
-        <View className="w-[260px]">
+        <View className="w-[300px] items-end">
           <View
-            className="flex-row rounded-2xl p-1"
+            className="w-full flex-row rounded-2xl p-1"
             style={{ backgroundColor: "#f0eaef" }}
           >
-            {["Todos", "Pendientes", "Contactados"].map((item) => (
-              <Pressable
-                key={item}
-                className="flex-1 rounded-[14px] px-3 py-2"
-                style={{
-                  backgroundColor:
-                    item === "Todos" ? "#f8ddeb" : "transparent",
-                }}
-              >
-                <ThemedText
-                  className="text-center text-[12px] font-bold"
-                  style={{
-                    color: item === "Todos" ? "#d10a78" : "#6f6875",
-                  }}
-                >
-                  {item}
-                </ThemedText>
-              </Pressable>
-            ))}
+            {(["Todos", "Pendientes", "Contactados"] as FilterType[]).map(
+              (item) => {
+                const active = filter === item;
+
+                return (
+                  <Pressable
+                    key={item}
+                    onPress={() => setFilter(item)}
+                    className="flex-1 rounded-[14px] px-3 py-3"
+                    style={{
+                      backgroundColor: active ? "#f8ddeb" : "transparent",
+                    }}
+                  >
+                    <ThemedText
+                      className="text-center text-[12px] font-bold"
+                      style={{ color: active ? "#d10a78" : "#6f6875" }}
+                    >
+                      {item}
+                    </ThemedText>
+                  </Pressable>
+                );
+              },
+            )}
           </View>
 
           <Pressable
-            className="mt-3 self-start rounded-2xl px-4 py-3"
+            className="mt-4 rounded-2xl px-5 py-3"
             style={{ backgroundColor: "#ece6eb" }}
           >
             <View className="flex-row items-center">
@@ -109,6 +114,7 @@ export default function SeguimientoScreen() {
         </View>
       )}
 
+      {/* TARJETAS */}
       <View className="mt-8 flex-row gap-4">
         <MetricCard
           title="Total Prospectos"
@@ -130,35 +136,48 @@ export default function SeguimientoScreen() {
         />
       </View>
 
-      <View className="mt-8 rounded-[22px] px-4 py-4">
-        <View className="mb-3 flex-row px-2">
-          <View className="flex-1">
+      {/* TABLA */}
+      <View className="mt-10">
+        {/* HEADER */}
+        <View className="mb-4 flex-row items-center px-4">
+          <View style={{ width: "33%" }}>
             <ThemedText className="text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
               Prospecto & Empresa
             </ThemedText>
           </View>
-          <View className="w-1/4">
+
+          <View style={{ width: "11%" }}>
             <ThemedText className="text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
               Interés
             </ThemedText>
           </View>
-          <View className="w-1/4">
+
+          <View style={{ width: "16%" }}>
             <ThemedText className="text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
               Estado
             </ThemedText>
           </View>
-          <View className="w-1/4">
+
+          <View style={{ width: "12%" }}>
             <ThemedText className="text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
               Anticipo
             </ThemedText>
           </View>
-          <View className="w-1/4">
+
+          <View style={{ width: "18%" }}>
             <ThemedText className="text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
               Próximo Paso
             </ThemedText>
           </View>
+
+          <View style={{ width: "10%" }}>
+            <ThemedText className="text-right text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
+              Acciones
+            </ThemedText>
+          </View>
         </View>
 
+        {/* FILAS */}
         {filteredProspectos.length === 0 ? (
           <View
             className="items-center rounded-[18px] px-6 py-12"
