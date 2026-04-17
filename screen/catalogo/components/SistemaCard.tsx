@@ -27,7 +27,7 @@ export const SistemaCard = memo(({ sistema, onPress }: SistemaCardProps) => {
 
       <View className="h-14 bg-white px-2 justify-center items-center border-t border-surface-variant">
         <ThemedText
-          className="text-brand-primary font-extrabold text-[10px] text-center uppercase tracking-tight"
+          className="text-brand-primary font-extrabold text-xl text-center uppercase tracking-tight"
           numberOfLines={2}
         >
           {sistema.nombre}

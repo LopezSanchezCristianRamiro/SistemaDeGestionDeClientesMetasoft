@@ -10,7 +10,9 @@ export function useSistemas() {
   const fetchSistemas = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await httpClient.getAuth<Sistema[]>("/api/sistemas");
+      const data = await httpClient.getAuth<Sistema[]>(
+        "/api/catalogo/sistemas",
+      );
       setSistemas(data);
     } catch (err: any) {
       setError(err.message || "Error al cargar el catálogo");
