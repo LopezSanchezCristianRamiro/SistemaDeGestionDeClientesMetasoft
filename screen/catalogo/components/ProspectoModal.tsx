@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/Toaster";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { ThemedText } from "../../../components/ThemedText";
 import { getUsuarioId } from "../../../storage/storage";
 import { useProspectoForm } from "../hooks/useProspectoForm";
@@ -49,8 +51,16 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
 
   const handleRegister = async () => {
     if (!sistema) return;
+    // En ProspectoModal.tsx, dentro de handleRegister
     if (!form.nombres || !form.primerApellido || !form.celular) {
-      Alert.alert("Atención", "Por favor completa los campos obligatorios (*)");
+      Toast.show({
+        type: "error",
+        text1: "Atención",
+        text2: "Por favor completa los campos obligatorios (*)",
+        position: "top",
+        topOffset: 60,
+        visibilityTime: 4000,
+      });
       return;
     }
     const usuarioId = userId || 1;
@@ -303,6 +313,7 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
+      <Toaster />
     </Modal>
   );
 }
