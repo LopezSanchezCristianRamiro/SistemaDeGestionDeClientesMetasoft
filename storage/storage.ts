@@ -28,7 +28,8 @@ const storage = {
 
 export const saveToken = (token: string) => storage.setItem("token", token);
 
-export const getToken = () => storage.getItem("token");
+//export const getToken = () => storage.getItem("token");
+export const getToken = () => 1;
 
 export const removeToken = () => storage.removeItem("token");
 

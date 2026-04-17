@@ -51,7 +51,6 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
 
   const handleRegister = async () => {
     if (!sistema) return;
-    // En ProspectoModal.tsx, dentro de handleRegister
     if (!form.nombres || !form.primerApellido || !form.celular) {
       Toast.show({
         type: "error",
@@ -59,7 +58,7 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
         text2: "Por favor completa los campos obligatorios (*)",
         position: "top",
         topOffset: 60,
-        visibilityTime: 4000,
+        visibilityTime: 9000,
       });
       return;
     }

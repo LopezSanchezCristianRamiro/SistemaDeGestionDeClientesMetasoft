@@ -6,5 +6,12 @@ const toastConfig = {
   info: (props: any) => <CustomToast {...props} />,
 };
 export const Toaster = () => {
-  return <Toast config={toastConfig} />;
+  return (
+    <Toast
+      config={toastConfig}
+      visibilityTime={5000}
+      position="top"
+      topOffset={60}
+    />
+  );
 };

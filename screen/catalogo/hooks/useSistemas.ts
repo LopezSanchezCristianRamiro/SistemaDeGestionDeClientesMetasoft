@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Toast from "react-native-toast-message";
 import { httpClient } from "../../../http/httpClient";
 import { Sistema } from "../types/sistema";
 
@@ -15,7 +16,11 @@ export function useSistemas() {
       );
       setSistemas(data);
     } catch (err: any) {
-      setError(err.message || "Error al cargar el catálogo");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: err.message || "Error al cargar el catálogo",
+      });
     } finally {
       setLoading(false);
     }
