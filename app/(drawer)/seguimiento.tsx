@@ -1,5 +1,5 @@
-import SeguimientoScreenView from "../../screen/seguimiento/seguimiento";
+import SeguimientoScreen from "../../screen/seguimiento/seguimiento";
 
-export default function SeguimientoScreen() {
-  return <SeguimientoScreenView />;
+export default function SeguimientoPage() {
+  return <SeguimientoScreen />;
 }
