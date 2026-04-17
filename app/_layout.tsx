@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/Toaster";
 import { Drawer } from "expo-router/drawer";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback } from "react";
@@ -9,7 +10,6 @@ import "../global.css";
 import { useResponsive } from "../hooks/useResponsive";
 
 SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
   const [fontsLoaded] = useAppFonts();
   const { isPermanentDrawer, isMobile } = useResponsive();
@@ -50,6 +50,7 @@ export default function RootLayout() {
           />
         </Drawer>
       </GestureHandlerRootView>
+      <Toaster />
     </View>
   );
 }
