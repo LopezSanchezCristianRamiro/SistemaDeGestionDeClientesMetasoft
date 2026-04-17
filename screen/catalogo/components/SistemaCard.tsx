@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React, { memo } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
@@ -16,12 +17,19 @@ export const SistemaCard = memo(({ sistema, onPress }: SistemaCardProps) => {
       className="flex-1 min-w-[260px] max-w-[450px] rounded-xl overflow-hidden bg-surface-container shadow-card border border-surface-variant aspect-[4/5] mx-1 my-1.5"
       accessibilityRole="button"
     >
-      <View className="flex-1 w-full relative ">
+      <View className="flex-1 w-full relative">
+        <LinearGradient
+          colors={["#6b21a8", "#c026d3", "#f43f5e"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="absolute inset-0"
+        />
         <Image
           source={{ uri: sistema.foto_url }}
-          className="absolute inset-0 w-full h-full bg-gradient-to-br from-purple-800 via-fuchsia-600 to-rose-500"
+          className="absolute inset-0 w-full h-full"
           resizeMode="cover"
         />
+
         <View className="absolute inset-0 bg-brand-primary/5" />
       </View>
 
