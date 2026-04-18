@@ -3,16 +3,16 @@ import { Platform, useWindowDimensions } from "react-native";
 export const useResponsive = () => {
   const { width } = useWindowDimensions();
 
-  const isMobileWidth = width < 768;
-  const isTabletOrDesktopWidth = width >= 768;
+  const isMobile = Platform.OS !== "web" || width < 768;
+  const isTablet = Platform.OS === "web" && width >= 768 && width < 1024;
+  const isDesktop = Platform.OS === "web" && width >= 1024;
 
-  const isNative = Platform.OS !== "web";
-
-  const isMobile = isNative || (Platform.OS === "web" && isMobileWidth);
-  const isPermanentDrawer = Platform.OS === "web" && isTabletOrDesktopWidth;
+  const isPermanentDrawer = isDesktop;
 
   return {
     isMobile,
+    isTablet,
+    isDesktop,
     isPermanentDrawer,
     width,
   };

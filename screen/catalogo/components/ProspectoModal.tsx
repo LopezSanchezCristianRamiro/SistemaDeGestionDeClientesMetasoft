@@ -51,14 +51,11 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
 
   const handleRegister = async () => {
     if (!sistema) return;
-    if (!form.nombres || !form.primerApellido || !form.celular) {
+    if (!form.nombres || !form.celular || !sistema.id) {
       Toast.show({
         type: "error",
         text1: "Atención",
         text2: "Por favor completa los campos obligatorios (*)",
-        position: "top",
-        topOffset: 60,
-        visibilityTime: 9000,
       });
       return;
     }
@@ -187,12 +184,11 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
                   onChangeText={(t: string) => setForm({ ...form, nombres: t })}
                   placeholder="Ej: Carlos Alberto"
                 />
-
+                {/*
                 <View className="flex-row gap-x-3">
                   <View className="flex-1">
                     <InputField
                       label="1er Apellido"
-                      required
                       value={form.primerApellido}
                       onChangeText={(t: string) =>
                         setForm({ ...form, primerApellido: t })
@@ -209,7 +205,7 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
                     />
                   </View>
                 </View>
-
+*/}
                 <InputField
                   label="Empresa"
                   value={form.empresa}
@@ -232,7 +228,6 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
                   <View className="flex-1">
                     <InputField
                       label="E-mail"
-                      required
                       value={form.correo}
                       onChangeText={(t: string) =>
                         setForm({ ...form, correo: t })

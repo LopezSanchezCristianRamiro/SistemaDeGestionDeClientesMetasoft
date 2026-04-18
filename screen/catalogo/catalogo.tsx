@@ -27,7 +27,7 @@ export function CatalogoScreen() {
   };
   return (
     <View className="flex-1 bg-surface">
-      <View className="pt-14 pb-5 px-6 border-b border-surface-variant/20">
+      <View className="pt-10 pb-5 px-6 border-b border-surface-variant/20">
         <ThemedText className="text-brand-primary font-bold text-3xl tracking-tight">
           Metasoft Bolivia
         </ThemedText>
