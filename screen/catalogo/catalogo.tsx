@@ -1,14 +1,17 @@
-import React from "react";
+import { Toaster } from "@/components/Toaster";
+import React, { useRef } from "react";
 import {
   ActivityIndicator,
-  Alert,
+  Platform,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Switch,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { ThemedText } from "../../components/ThemedText";
 import { useResponsive } from "../../hooks/useResponsive";
@@ -20,6 +23,7 @@ import { useProspectoForm } from "./hooks/useProspectoForm";
 import { useSistemas } from "./hooks/useSistemas";
 import { ProspectoDTO } from "./types/prospecto";
 import { Sistema } from "./types/sistema";
+
 interface FormState {
   nombres: string;
   primerApellido: string;
@@ -31,6 +35,7 @@ interface FormState {
   tieneAdelanto: boolean;
   montoAdelanto: string;
 }
+
 export function CatalogoScreen() {
   const { sistemas, loading, refresh } = useSistemas();
   const { isDesktop } = useResponsive();
@@ -55,6 +60,9 @@ export function CatalogoScreen() {
     montoAdelanto: "",
   });
 
+  const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
+  const montoInputRef = useRef<TextInput>(null);
+
   React.useEffect(() => {
     getUsuarioId().then((id) => id && setUserId(parseInt(id, 10)));
   }, []);
@@ -63,16 +71,12 @@ export function CatalogoScreen() {
     const sistema = sistemas.find((s) => s.id === id);
     if (sistema) {
       setSelectedSistema(sistema);
-      if (isDesktop) {
-        setModalVisible(true);
-      }
+      if (isDesktop) setModalVisible(true);
     }
   };
 
   const handleOpenDetailModal = () => {
-    if (selectedSistema) {
-      setDetailModalVisible(true);
-    }
+    if (selectedSistema) setDetailModalVisible(true);
   };
 
   const resetForm = () => {
@@ -123,12 +127,27 @@ export function CatalogoScreen() {
 
     const result = await registrarProspecto(data);
     if (result.success) {
-      Alert.alert("Éxito", "Prospecto registrado correctamente.");
-      resetForm();
-      setSelectedSistema(null);
+      Toast.show({
+        type: "success",
+        text1: "Éxito",
+        text2: "Prospecto registrado correctamente.",
+      });
+      const timer = setTimeout(() => {
+        resetForm();
+        setSelectedSistema(null);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   };
 
+  React.useEffect(() => {
+    if (form.tieneAdelanto && montoInputRef.current && scrollViewRef.current) {
+      const timer = setTimeout(() => {}, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [form.tieneAdelanto]);
+
+  // ─── Layout Desktop ───────────────────────────────────────────────────────
   if (isDesktop) {
     return (
       <View className="flex-1 bg-surface">
@@ -140,7 +159,6 @@ export function CatalogoScreen() {
             FEXCO 2026 • Event Mode
           </ThemedText>
         </View>
-
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ padding: 10, paddingBottom: 50 }}
@@ -169,7 +187,6 @@ export function CatalogoScreen() {
                   onPress={handleSelectSistema}
                 />
               ))}
-              {/* Elementos fantasma para mantener el grid */}
               {Array.from({ length: 4 }).map((_, i) => (
                 <View
                   key={i}
@@ -187,19 +204,20 @@ export function CatalogoScreen() {
             </View>
           )}
         </ScrollView>
-
         <ProspectoModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           sistema={selectedSistema}
         />
+        <Toaster />
       </View>
     );
   }
 
+  // ─── Layout Mobile ────────────────────────────────────────────────────────
   return (
     <View className="flex-1 bg-surface">
-      <View className="pt-10 pb-3 px-4 border-b border-surface-variant/20">
+      <View className="pt-14 pb-3 px-4 border-b border-surface-variant/20">
         <ThemedText className="text-brand-primary font-bold text-2xl">
           Metasoft Bolivia
         </ThemedText>
@@ -216,6 +234,7 @@ export function CatalogoScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 12 }}
+          style={{ height: 240 }}
           refreshControl={
             <RefreshControl
               refreshing={loading}
@@ -233,11 +252,12 @@ export function CatalogoScreen() {
               <TouchableOpacity
                 key={item.id}
                 onPress={() => setSelectedSistema(item)}
-                className={`mr-3 rounded-xl overflow-hidden border-2 ${
+                className="mr-3 rounded-xl overflow-hidden border-2"
+                style={
                   selectedSistema?.id === item.id
-                    ? "border-brand-primary"
-                    : "border-transparent"
-                }`}
+                    ? styles.cardSelected
+                    : styles.cardDefault
+                }
               >
                 <SistemaCard
                   sistema={item}
@@ -256,9 +276,18 @@ export function CatalogoScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
+        ref={scrollViewRef}
         className="flex-1 px-4"
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{
+          paddingBottom: Platform.OS === "ios" ? 100 : 80,
+        }}
+        showsVerticalScrollIndicator={false}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={Platform.OS === "android" ? 80 : 60}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
       >
         <TouchableOpacity
           onPress={handleOpenDetailModal}
@@ -279,33 +308,14 @@ export function CatalogoScreen() {
           label="Nombres"
           required
           value={form.nombres}
-          onChangeText={(text: string) => setForm({ ...form, nombres: text })}
+          onChangeText={(text) => setForm({ ...form, nombres: text })}
           placeholder="Ej: Carlos Alberto"
         />
-        <View className="flex-row gap-x-3">
-          <View className="flex-1">
-            <InputField
-              label="1er Apellido"
-              value={form.primerApellido}
-              onChangeText={(text: string) =>
-                setForm({ ...form, primerApellido: text })
-              }
-            />
-          </View>
-          <View className="flex-1">
-            <InputField
-              label="2do Apellido"
-              value={form.segundoApellido}
-              onChangeText={(text: string) =>
-                setForm({ ...form, segundoApellido: text })
-              }
-            />
-          </View>
-        </View>
+
         <InputField
           label="Empresa"
           value={form.empresa}
-          onChangeText={(text: string) => setForm({ ...form, empresa: text })}
+          onChangeText={(text) => setForm({ ...form, empresa: text })}
           placeholder="Nombre de la institución"
         />
         <View className="flex-row gap-x-3">
@@ -314,9 +324,7 @@ export function CatalogoScreen() {
               label="Celular"
               required
               value={form.celular}
-              onChangeText={(text: string) =>
-                setForm({ ...form, celular: text })
-              }
+              onChangeText={(text) => setForm({ ...form, celular: text })}
               keyboardType="phone-pad"
             />
           </View>
@@ -324,9 +332,7 @@ export function CatalogoScreen() {
             <InputField
               label="E-mail"
               value={form.correo}
-              onChangeText={(text: string) =>
-                setForm({ ...form, correo: text })
-              }
+              onChangeText={(text) => setForm({ ...form, correo: text })}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -337,23 +343,24 @@ export function CatalogoScreen() {
           Grado de Interés
         </ThemedText>
         <View className="flex-row bg-zinc-100 p-1.5 rounded-2xl mb-4">
-          {(["Bajo", "Medio", "Alto"] as const).map((lvl) => (
-            <TouchableOpacity
-              key={lvl}
-              onPress={() => setForm({ ...form, interes: lvl })}
-              className={`flex-1 py-3 rounded-xl items-center ${
-                form.interes === lvl ? "bg-white shadow-sm" : ""
-              }`}
-            >
-              <ThemedText
-                className={`font-bold ${
-                  form.interes === lvl ? "text-brand-primary" : "text-zinc-400"
-                }`}
+          {(["Bajo", "Medio", "Alto"] as const).map((lvl) => {
+            const isSelected = form.interes === lvl;
+            return (
+              <TouchableOpacity
+                key={lvl}
+                onPress={() => setForm({ ...form, interes: lvl })}
+                className="flex-1 py-3 rounded-xl items-center"
+                style={isSelected ? styles.tabSelected : styles.tabDefault}
               >
-                {lvl}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
+                <ThemedText
+                  className="font-bold"
+                  style={{ color: isSelected ? "#E1007E" : "#9CA3AF" }}
+                >
+                  {lvl}
+                </ThemedText>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View className="flex-row justify-between items-center bg-zinc-50 p-4 rounded-xl mb-4 border border-zinc-100">
@@ -375,12 +382,11 @@ export function CatalogoScreen() {
         {form.tieneAdelanto && (
           <View className="mb-4">
             <InputField
+              ref={montoInputRef}
               label="Monto Recibido (Bs.)"
               required
               value={form.montoAdelanto}
-              onChangeText={(text: string) =>
-                setForm({ ...form, montoAdelanto: text })
-              }
+              onChangeText={(text) => setForm({ ...form, montoAdelanto: text })}
               keyboardType="numeric"
             />
           </View>
@@ -389,9 +395,8 @@ export function CatalogoScreen() {
         <TouchableOpacity
           onPress={handleRegister}
           disabled={isSubmitting || !selectedSistema}
-          className={`py-4 rounded-xl items-center ${
-            selectedSistema ? "bg-brand-primary" : "bg-surface-variant"
-          }`}
+          className="py-4 rounded-xl items-center mb-6"
+          style={selectedSistema ? styles.btnPrimary : styles.btnDisabled}
         >
           {isSubmitting ? (
             <ActivityIndicator color="white" />
@@ -401,7 +406,7 @@ export function CatalogoScreen() {
             </ThemedText>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <SistemaDetalleModal
         visible={detailModalVisible}
@@ -412,6 +417,7 @@ export function CatalogoScreen() {
   );
 }
 
+// ─── InputField ───────────────────────────────────────────────────────────────
 interface InputFieldProps extends React.ComponentProps<typeof TextInput> {
   label: string;
   required?: boolean;
@@ -419,24 +425,21 @@ interface InputFieldProps extends React.ComponentProps<typeof TextInput> {
   onChangeText: (text: string) => void;
 }
 
-function InputField({
-  label,
-  required,
-  value,
-  onChangeText,
-  ...props
-}: InputFieldProps) {
-  return (
+const InputField = React.forwardRef<TextInput, InputFieldProps>(
+  ({ label, required, value, onChangeText, ...props }, ref) => (
     <View className="mb-4">
       <View className="flex-row mb-1 ml-1">
         <ThemedText className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">
           {label}
         </ThemedText>
-        {required && (
-          <ThemedText className="text-brand-primary ml-1">*</ThemedText>
-        )}
+        <ThemedText
+          className={`ml-1 ${required ? "text-brand-primary" : "opacity-0"}`}
+        >
+          *
+        </ThemedText>
       </View>
       <TextInput
+        ref={ref}
         className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 text-zinc-900 text-base"
         placeholderTextColor="#A1A1AA"
         value={value}
@@ -444,5 +447,32 @@ function InputField({
         {...props}
       />
     </View>
-  );
-}
+  ),
+);
+InputField.displayName = "InputField";
+
+const styles = StyleSheet.create({
+  tabSelected: {
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#1C1B1F",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  tabDefault: {
+    backgroundColor: "transparent",
+  },
+  cardSelected: {
+    borderColor: "#E1007E",
+  },
+  cardDefault: {
+    borderColor: "transparent",
+  },
+  btnPrimary: {
+    backgroundColor: "#E1007E",
+  },
+  btnDisabled: {
+    backgroundColor: "#D1D5DB",
+  },
+});

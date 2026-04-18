@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Image, Modal, ScrollView, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
@@ -29,16 +30,30 @@ export function SistemaDetalleModal({ visible, onClose, sistema }: Props) {
               {sistema.nombre}
             </ThemedText>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#9E9E9E" />
+              <Ionicons name="close" size={24} color="red" />
             </TouchableOpacity>
           </View>
 
           <ScrollView>
-            <Image
-              source={{ uri: sistema.foto_url }}
-              className="w-full h-56"
-              resizeMode="cover"
-            />
+            <View>
+              <LinearGradient
+                colors={["#6b21a8", "#c026d3", "#f43f5e"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              />
+              <Image
+                source={{ uri: sistema.foto_url }}
+                className="w-full h-56"
+                resizeMode="cover"
+              />
+            </View>
             <View className="p-5">
               <ThemedText className="text-lg font-semibold mb-2">
                 Descripción
