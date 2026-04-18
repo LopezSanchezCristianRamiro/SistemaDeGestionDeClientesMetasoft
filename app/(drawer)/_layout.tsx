@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "../../components/ThemedText";
 import { useResponsive } from "../../hooks/useResponsive";
 
-// Rutas literales para evitar problemas de tipado en la key
 const TAB_ITEMS = [
   { label: "Catálogo", route: "/catalogo", icon: "grid-outline" } as const,
   {

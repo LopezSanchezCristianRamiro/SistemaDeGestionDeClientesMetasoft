@@ -184,28 +184,6 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
                   onChangeText={(t: string) => setForm({ ...form, nombres: t })}
                   placeholder="Ej: Carlos Alberto"
                 />
-                {/*
-                <View className="flex-row gap-x-3">
-                  <View className="flex-1">
-                    <InputField
-                      label="1er Apellido"
-                      value={form.primerApellido}
-                      onChangeText={(t: string) =>
-                        setForm({ ...form, primerApellido: t })
-                      }
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <InputField
-                      label="2do Apellido"
-                      value={form.segundoApellido}
-                      onChangeText={(t: string) =>
-                        setForm({ ...form, segundoApellido: t })
-                      }
-                    />
-                  </View>
-                </View>
-*/}
                 <InputField
                   label="Empresa"
                   value={form.empresa}

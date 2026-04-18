@@ -14,10 +14,10 @@ export const SistemaCard = memo(({ sistema, onPress }: SistemaCardProps) => {
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={() => onPress(sistema.id)}
-      className="flex-1 min-w-[260px] max-w-[450px] rounded-xl overflow-hidden bg-surface-container shadow-card border border-surface-variant aspect-[4/5] mx-1 my-1.5"
+      className="flex-1 min-w-[260px] max-w-[450px] rounded-xl overflow-hidden bg-surface-container shadow-card border border-surface-variant h-[250px] mx-1 my-1.5"
       accessibilityRole="button"
     >
-      <View className="flex-1 w-full relative">
+      <View className="h-[194px] w-full relative">
         <LinearGradient
           colors={["#6b21a8", "#c026d3", "#f43f5e"]}
           start={{ x: 0, y: 0 }}
