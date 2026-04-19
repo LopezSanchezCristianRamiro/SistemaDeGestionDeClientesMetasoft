@@ -96,7 +96,7 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
   const nombreMostrar = nombreCompleto || "Sin nombre";
   const empresaMostrar = item.empresa || "Sin empresa";
   const interesMostrar = item.interes || "Sin interés";
-  const pasoMostrar = item.siguientePaso || "Sin próximo paso";
+  const pasoMostrar = item.proximoPaso || item.siguientePaso || "Sin próximo paso";
   const anticipoMostrar =
     item.anticipo !== undefined && item.anticipo !== null && item.anticipo !== ""
       ? `$${item.anticipo}`

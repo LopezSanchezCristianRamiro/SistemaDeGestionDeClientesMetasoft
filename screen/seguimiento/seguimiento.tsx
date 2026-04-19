@@ -94,31 +94,31 @@ const handleGuardarPaso = async (payload: {
     };
   });
 };
-   const handleOpenDetalle = (item: any) => {
-    const detalle = {
-      ...item,
-      correo:
-        item.correo ||
-        item.email ||
-        item.correoElectronico ||
-        "cliente@correo.com",
-      telefono: item.telefono || item.celular || item.numeroTelefono || "",
-      fechaInicio:
-        item.fechaInicio ||
-        item.fechaRegistro ||
-        item.fechaCreacion ||
-        "12 May",
-      proximoPaso:
-        item.siguientePaso ||
-        item.proximoPaso ||
-        "Enviar contrato al correo",
-      historialPasos: item.historialPasos || item.pasos || [],
-    };
+const handleOpenDetalle = (item: any) => {
+  console.log("ITEM ORIGINAL:", item);
 
-
-    setProspectoSeleccionado(detalle);
-    setDetalleVisible(true);
+  const detalle = {
+    ...item,
+    correo: item.correo ?? item.email ?? item.correoElectronico ?? "",
+    telefono: item.telefono ?? item.celular ?? item.numeroTelefono ?? "",
+    fechaInicio:
+      item.fechaInicio ??
+      item.fechaRegistro ??
+      item.fechaCreacion ??
+      item.fecha ??
+      "",
+    proximoPaso:
+      item.proximoPaso ??
+      item.siguientePaso ??
+      "",
+    historialPasos: item.historialPasos ?? item.pasos ?? [],
   };
+
+  console.log("DETALLE ENVIADO AL MODAL:", detalle);
+
+  setProspectoSeleccionado(detalle);
+  setDetalleVisible(true);
+};
 
   if (loading) {
     return (

@@ -84,8 +84,15 @@ export default function SeguimientoDetalleModal({
   const interes = prospecto?.interes || "Sin interés";
   const estado = prospecto?.estado || "Sin estado";
   const anticipo = prospecto?.anticipo ?? 0;
-  const correo = prospecto?.correo || "Sin correo registrado";
-  const telefono = prospecto?.telefono || "Sin teléfono registrado";
+ const correo =
+  prospecto?.correo ??
+  (prospecto as any)?.correoElectronico ??
+  "";
+
+const telefono =
+  prospecto?.telefono ??
+  (prospecto as any)?.celular ??
+  "";
   const fechaInicio = prospecto?.fechaInicio || "Sin fecha";
   const proximoPaso = prospecto?.proximoPaso || "Sin próximo paso";
   const historialPasos = prospecto?.historialPasos || [];
