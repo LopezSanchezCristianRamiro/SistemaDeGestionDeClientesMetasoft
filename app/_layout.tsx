@@ -1,18 +1,15 @@
 import { Toaster } from "@/components/Toaster";
-import { Drawer } from "expo-router/drawer";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { CustomDrawerContent } from "../components/CustomDrawerContent";
 import { useAppFonts } from "../constants/fonts";
 import "../global.css";
-import { useResponsive } from "../hooks/useResponsive";
 
 SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [fontsLoaded] = useAppFonts();
-  const { isPermanentDrawer, isDesktop } = useResponsive();
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded) {
@@ -27,89 +24,17 @@ export default function RootLayout() {
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Drawer
-          drawerContent={(props) => <CustomDrawerContent {...props} />}
+        <Stack
           screenOptions={{
             headerShown: false,
-            drawerType: isDesktop ? "permanent" : "front",
-            drawerStyle: {
-              width: 280,
-              ...(isDesktop && {
-                shadowOpacity: 0,
-                borderRightWidth: 0,
-              }),
-            },
-            swipeEnabled: isDesktop,
           }}
         >
-          <Drawer.Screen
-            name="(drawer)"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Drawer>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(drawer)" />
+        </Stack>
       </GestureHandlerRootView>
       <Toaster />
     </View>
   );
 }
-
-/*
-import { Toaster } from "@/components/Toaster";
-import { Drawer } from "expo-router/drawer";
-import * as SplashScreen from "expo-splash-screen";
-import { useCallback } from "react";
-import { View } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { CustomDrawerContent } from "../components/CustomDrawerContent";
-import { useAppFonts } from "../constants/fonts";
-import "../global.css";
-import { useResponsive } from "../hooks/useResponsive";
-
-SplashScreen.preventAutoHideAsync();
-export default function RootLayout() {
-  const [fontsLoaded] = useAppFonts();
-  const { isPermanentDrawer, isMobile } = useResponsive();
-
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
-
-  return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <Drawer
-          drawerContent={(props) => <CustomDrawerContent {...props} />}
-          screenOptions={{
-            headerShown: false,
-            drawerType: isPermanentDrawer ? "permanent" : "front",
-            drawerStyle: {
-              width: 280,
-              ...(isPermanentDrawer && {
-                shadowOpacity: 0,
-                borderRightWidth: 0,
-              }),
-            },
-            swipeEnabled: !isPermanentDrawer,
-          }}
-        >
-          <Drawer.Screen
-            name="(drawer)"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Drawer>
-      </GestureHandlerRootView>
-      <Toaster />
-    </View>
-  );
-}
-*/
