@@ -1,16 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    Linking,
-    Modal,
-    Pressable,
-    ScrollView,
-    View,
-    useWindowDimensions,
+  Alert,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
 } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
+import { httpClient } from "../../../http/httpClient";
 import RegistrarPasoModal from "./RegistrarPasoModal";
-
 type Paso = {
   id?: number;
   titulo?: string;
@@ -21,16 +22,25 @@ type Paso = {
 
 type ProspectoDetalle = {
   id: number;
+  idProspecto?: number;
+  idSeguimiento?: number;
+
   nombre?: string;
   apellidos?: string;
   empresa?: string;
   interes?: string;
+
   estado?: string;
   anticipo?: number | string;
+
   correo?: string;
   telefono?: string;
+
   fechaInicio?: string;
+  fechaInicioSeguimiento?: string;
+
   proximoPaso?: string;
+
   historialPasos?: Paso[];
 };
 
@@ -76,44 +86,103 @@ export default function SeguimientoDetalleModal({
   onGuardarPaso,
 }: Props) {
   const { width, height } = useWindowDimensions();
+
   const [showPasoModal, setShowPasoModal] = useState(false);
 
+  // NUEVO
+  const [estadoSeguimiento, setEstadoSeguimiento] = useState("Pendiente");
+  const [savingEstado, setSavingEstado] = useState(false);
+
+  useEffect(() => {
+    if (prospecto?.estado) {
+      setEstadoSeguimiento(prospecto.estado);
+    }
+  }, [prospecto]);
+
   const isMobile = width < 640;
+
   const nombreCompleto = getNombreCompleto(prospecto) || "Sin nombre";
   const empresa = prospecto?.empresa || "Sin empresa";
   const interes = prospecto?.interes || "Sin interés";
-  const estado = prospecto?.estado || "Sin estado";
-  const anticipo = prospecto?.anticipo ?? 0;
- const correo =
-  prospecto?.correo ??
-  (prospecto as any)?.correoElectronico ??
-  "";
 
-const telefono =
-  prospecto?.telefono ??
-  (prospecto as any)?.celular ??
-  "";
-  const fechaInicio = prospecto?.fechaInicio || "Sin fecha";
-  const proximoPaso = prospecto?.proximoPaso || "Sin próximo paso";
-  const historialPasos = prospecto?.historialPasos || [];
+  // CAMBIO
+  const estado =
+    estadoSeguimiento || prospecto?.estado || "Pendiente";
+
+  const anticipo = prospecto?.anticipo ?? 0;
+
+  const correo =
+    prospecto?.correo ??
+    (prospecto as any)?.correoElectronico ??
+    "";
+
+  const telefono =
+    prospecto?.telefono ??
+    (prospecto as any)?.celular ??
+    "";
+
+  // CAMBIO
+  const fechaInicio =
+    prospecto?.fechaInicioSeguimiento ||
+    prospecto?.fechaInicio ||
+    "Sin fecha";
+
+  const proximoPaso =
+    prospecto?.proximoPaso || "Sin próximo paso";
+
+  const historialPasos =
+    prospecto?.historialPasos || [];
 
   const handleOpenMail = async () => {
-    if (!prospecto?.correo) return;
-    const url = `mailto:${prospecto.correo}`;
+    if (!correo) return;
+
+    const url = `mailto:${correo}`;
     const supported = await Linking.canOpenURL(url);
+
     if (supported) {
       await Linking.openURL(url);
     }
   };
 
   const handleOpenPhone = async () => {
-    if (!prospecto?.telefono) return;
-    const url = `tel:${prospecto.telefono}`;
+    if (!telefono) return;
+
+    const url = `tel:${telefono}`;
     const supported = await Linking.canOpenURL(url);
+
     if (supported) {
       await Linking.openURL(url);
     }
   };
+
+  // NUEVO
+  const handleActualizarEstado = async () => {
+  try {
+    if (!prospecto?.idSeguimiento) {
+      Alert.alert("Error", "No existe seguimiento.");
+      return;
+    }
+
+    setSavingEstado(true);
+
+    const data: any = await httpClient.putAuth(
+      `/seguimiento/${prospecto.idSeguimiento}/estado`,
+      {
+        estadoSeguimiento,
+      },
+      "No se pudo actualizar"
+    );
+
+    Alert.alert("Correcto", data?.message || "Estado actualizado");
+  } catch (error: any) {
+    Alert.alert(
+      "Error",
+      error?.message || "No se pudo actualizar"
+    );
+  } finally {
+    setSavingEstado(false);
+  }
+};
 
   const handleCerrarSeguimiento = () => {
     onClose();
@@ -578,7 +647,7 @@ const telefono =
             }}
           />
         </View>
-      </View>
+      </View>               
     </Modal>
   );
 }
