@@ -6,11 +6,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
-  View,
+  View
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { ThemedText } from "../../components/ThemedText";
 import { useLogin } from "./hooks/useLogin";
@@ -54,9 +54,11 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}          // ← clave para Android
+        extraScrollHeight={20}
         className="bg-surface"
       >
         <View className="flex-1 justify-center items-center px-6 py-10">
@@ -146,10 +148,20 @@ export default function LoginScreen() {
                   <Text className="text-base font-bold text-white">Entrar</Text>
                 )}
               </Pressable>
+              <View className="flex-row justify-center mt-5">
+                <Text className="text-sm text-surface-dark/60">
+                  ¿No tienes cuenta?{" "}
+                </Text>
+                <Pressable onPress={() => router.push("/(auth)/register" as any)}>
+                  <Text className="text-sm font-bold text-brand-primary">
+                    Regístrate
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 }
