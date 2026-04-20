@@ -160,7 +160,11 @@ export function CatalogoScreen() {
         </View>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 10, paddingBottom: 50 }}
+          contentContainerStyle={{
+            paddingHorizontal: 4,
+            paddingVertical: 10,
+            paddingBottom: 50,
+          }}
           refreshControl={
             <RefreshControl
               refreshing={loading}
@@ -178,7 +182,7 @@ export function CatalogoScreen() {
               />
             </View>
           ) : (
-            <View className="w-full flex-row flex-wrap justify-center gap-1">
+            <View className="w-full flex-row flex-wrap justify-center">
               {sistemas.map((item) => (
                 <SistemaCard
                   key={item.id}
@@ -188,9 +192,13 @@ export function CatalogoScreen() {
               ))}
               {Array.from({ length: 4 }).map((_, i) => (
                 <View
-                  key={i}
-                  className="flex-1 min-w-[260px] max-w-[450px] mx-1"
-                  style={{ height: 0 }}
+                  key={`phantom-${i}`}
+                  style={{
+                    width: 180, // Mismo tamaño que CARD_WIDTH
+                    marginHorizontal: 6, // Mismo margen que la card real
+                    height: 0,
+                  }}
+                  pointerEvents="none"
                 />
               ))}
             </View>
