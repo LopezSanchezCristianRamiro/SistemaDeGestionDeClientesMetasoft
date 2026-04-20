@@ -1,9 +1,22 @@
+// screen/reporte/hooks/useReporte.ts
 import { useCallback, useEffect, useState } from "react";
 import { httpClient } from "../../../http/httpClient";
 
-// ─── Tipos actualizados al nuevo contrato de API ──────────────────────────────
 
-export interface Seguimiento {
+interface InteresProspectos {
+  Alto: number;
+  Medio: number;
+  Bajo: number;
+  total: number;
+  porcentajes: { Alto: number; Medio: number; Bajo: number };
+}
+
+interface SistemaSolicitado {
+  nombre: string;
+  leads: number;
+}
+
+interface Seguimiento {
   id: number;
   nombre: string;
   empresa: string;
@@ -12,53 +25,25 @@ export interface Seguimiento {
   estadoSeguimiento: string;
 }
 
-export interface RankingItem {
+interface RankingItem {
   idUsuario: number;
   nombre: string;
   totalProspectos: number;
   totalVentas: number;
 }
 
-export interface SistemaItem {
-  nombre: string;
-  leads: number;
-}
-
-export interface InteresProspectos {
-  Alto: number;
-  Medio: number;
-  Bajo: number;
-  total: number;
-  porcentajes: { Alto: number; Medio: number; Bajo: number };
-}
-
-export interface ReportesData {
+interface ReporteData {
   totalProspectos: number;
   gananciaPotencial: number;
   porEstadoSeguimiento: Record<string, number>;
   interesProspectos: InteresProspectos;
-  sistemasMasSolicitados: SistemaItem[];
+  sistemasMasSolicitados: SistemaSolicitado[];
   seguimientos: Seguimiento[];
   rankingProductividad: RankingItem[];
 }
 
-export interface ReportesMetrics {
-  totalProspectos: number;
-  gananciaPotencial: number;
-  totalAdelantos: number;
-  totalVendedores: number;
-  estadoCounts: Record<string, number>;
-}
-
-function toNumber(value: unknown): number {
-  const n = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 export function useReportes() {
-  const [data, setData] = useState<ReportesData | null>(null);
+  const [data, setData] = useState<ReporteData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,43 +51,33 @@ export function useReportes() {
     setLoading(true);
     setError(null);
     try {
-      const res = await httpClient.getAuth<ReportesData>("/api/reportes");
-      setData(res);
+      const json = await httpClient.getAuth<ReporteData>("/api/reportes");
+      setData(json);
     } catch (e: any) {
-      setError(e?.message ?? "Error desconocido");
+      setError(e.message ?? "Error desconocido");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  const seguimientos: Seguimiento[] = (data?.seguimientos ?? []).map((s) => ({
-    ...s,
-    adelanto: toNumber(s.adelanto),
-    estadoSeguimiento: s.estadoSeguimiento || "Sin estado",
-  }));
-
-  const ranking: RankingItem[] = (data?.rankingProductividad ?? []).map((r) => ({
-    ...r,
-    totalProspectos: toNumber(r.totalProspectos),
-    totalVentas: toNumber(r.totalVentas),
-  }));
-
-  const metrics: ReportesMetrics = {
-    totalProspectos: toNumber(data?.totalProspectos),
-    gananciaPotencial: toNumber(data?.gananciaPotencial),
-    totalAdelantos: seguimientos.reduce((a, s) => a + s.adelanto, 0),
-    totalVendedores: ranking.length,
-    estadoCounts: data?.porEstadoSeguimiento ?? {},
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return {
-    seguimientos,
-    ranking,
-    metrics,
+    metrics: data
+      ? {
+          totalProspectos: data.totalProspectos,
+          gananciaPotencial: data.gananciaPotencial,
+          estadoCounts: data.porEstadoSeguimiento,
+          totalAdelantos: data.seguimientos?.reduce((acc, s) => acc + (s.adelanto ?? 0), 0) ?? 0,
+          totalVendedores: data.rankingProductividad?.length ?? 0,
+        }
+      : null,
     interesProspectos: data?.interesProspectos ?? null,
     sistemasMasSolicitados: data?.sistemasMasSolicitados ?? [],
+    seguimientos: data?.seguimientos ?? [],
+    rankingProductividad: data?.rankingProductividad ?? [],
     loading,
     error,
     refetch: fetchData,
