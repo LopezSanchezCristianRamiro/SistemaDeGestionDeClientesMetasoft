@@ -1,7 +1,10 @@
 import { Toaster } from "@/components/Toaster";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   Platform,
   RefreshControl,
   ScrollView,
@@ -15,7 +18,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import Toast from "react-native-toast-message";
 import { ThemedText } from "../../components/ThemedText";
 import { useResponsive } from "../../hooks/useResponsive";
-import { getUsuarioId } from "../../storage/storage";
 import { ProspectoModal } from "./components/ProspectoModal";
 import { SistemaCard } from "./components/SistemaCard";
 import { SistemaDetalleModal } from "./components/SistemaDetalleModal";
@@ -47,6 +49,7 @@ export function CatalogoScreen() {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [detailModalVisible, setDetailModalVisible] = React.useState(false);
   const [userId, setUserId] = React.useState<number | null>(null);
+  const spinValue = React.useRef(new Animated.Value(0)).current;
 
   const [form, setForm] = React.useState<FormState>({
     nombres: "",
@@ -64,8 +67,38 @@ export function CatalogoScreen() {
   const montoInputRef = useRef<TextInput>(null);
 
   React.useEffect(() => {
-    getUsuarioId().then((id) => id && setUserId(parseInt(id, 10)));
-  }, []);
+    if (loading) {
+      Animated.loop(
+        Animated.timing(spinValue, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ).start();
+    } else {
+      Animated.timing(spinValue, {
+        toValue: 0,
+        duration: 0,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  const handleManualRefresh = async () => {
+    await refresh();
+    Toast.show({
+      type: "success",
+      text1: "Catálogo actualizado",
+      text2: "Los sistemas se han sincronizado correctamente.",
+      visibilityTime: 2000,
+    });
+  };
 
   const handleSelectSistema = (id: number) => {
     const sistema = sistemas.find((s) => s.id === id);
@@ -106,7 +139,7 @@ export function CatalogoScreen() {
       Toast.show({
         type: "error",
         text1: "Atención",
-        text2: "Complete los campos obligatorios (*)",
+        text2: "Ingrese el nombre y teléfono del prospecto",
       });
       return;
     }
@@ -150,13 +183,32 @@ export function CatalogoScreen() {
   if (isDesktop) {
     return (
       <View className="flex-1 bg-surface">
-        <View className="pt-10 pb-5 px-6 border-b border-surface-variant/20">
-          <ThemedText className="text-brand-primary font-bold text-3xl tracking-tight">
-            Metasoft Bolivia
-          </ThemedText>
-          <ThemedText className="text-surface-dark/50 font-medium text-base">
-            FEXCO 2026 • Event Mode
-          </ThemedText>
+        <View className="flex-row justify-between items-center pt-10 pb-5 px-6 border-b border-surface-variant/20">
+          <View>
+            <ThemedText className="text-brand-primary font-bold text-3xl tracking-tight">
+              Metasoft Bolivia
+            </ThemedText>
+            <ThemedText className="text-surface-dark/50 font-medium text-base">
+              FEXCO 2026 • Event Mode
+            </ThemedText>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleManualRefresh}
+            disabled={loading}
+            activeOpacity={0.7}
+            className="p-3 bg-brand-primary/10 rounded-full flex-row items-center"
+          >
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Ionicons name="refresh" size={20} color="#E1007E" />
+            </Animated.View>
+            {/*
+            {!loading && (
+              <ThemedText className="ml-2 text-brand-primary font-bold text-xs">
+                REFRESCAR
+              </ThemedText>/
+            )}*/}
+          </TouchableOpacity>
         </View>
         <ScrollView
           className="flex-1"
@@ -234,9 +286,27 @@ export function CatalogoScreen() {
       </View>
 
       <View className="py-3">
-        <ThemedText className="px-4 text-sm font-semibold text-surface-dark mb-2">
-          Selecciona un sistema
-        </ThemedText>
+        <View className="flex-row justify-between items-center px-4 mb-2">
+          <ThemedText className="text-sm font-semibold text-surface-dark">
+            Selecciona un sistema
+          </ThemedText>
+
+          <TouchableOpacity
+            onPress={handleManualRefresh}
+            disabled={loading}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            className="flex-row items-center"
+          >
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Ionicons name="refresh" size={18} color="#E1007E" />
+            </Animated.View>
+            {/*}
+            <ThemedText className="ml-1.5 text-[10px] font-bold text-brand-primary uppercase tracking-tighter">
+              {loading ? "Sincronizando..." : "Actualizar"}
+            </ThemedText>*/}
+          </TouchableOpacity>
+        </View>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -312,7 +382,7 @@ export function CatalogoScreen() {
         </TouchableOpacity>
 
         <InputField
-          label="Nombres"
+          label="Nombre Completo"
           required
           value={form.nombres}
           onChangeText={(text) => setForm({ ...form, nombres: text })}
@@ -409,7 +479,9 @@ export function CatalogoScreen() {
             <ActivityIndicator color="white" />
           ) : (
             <ThemedText className="text-white font-bold text-lg">
-              REGISTRAR PROSPECTO
+              {selectedSistema
+                ? "REGISTRAR PROSPECTO"
+                : "PRIMERO SELECCIONE UN SISTEMA"}
             </ThemedText>
           )}
         </TouchableOpacity>
