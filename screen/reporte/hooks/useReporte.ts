@@ -11,7 +11,7 @@ interface InteresProspectos {
   porcentajes: { Alto: number; Medio: number; Bajo: number };
 }
 
-interface SistemaSolicitado {
+export interface SistemaItem {
   nombre: string;
   leads: number;
 }
@@ -37,7 +37,7 @@ interface ReporteData {
   gananciaPotencial: number;
   porEstadoSeguimiento: Record<string, number>;
   interesProspectos: InteresProspectos;
-  sistemasMasSolicitados: SistemaSolicitado[];
+  sistemasMasSolicitados: SistemaItem[];
   seguimientos: Seguimiento[];
   rankingProductividad: RankingItem[];
 }
