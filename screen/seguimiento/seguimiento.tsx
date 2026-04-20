@@ -46,14 +46,13 @@ const handleGuardarPaso = async (payload: {
   tipoActividad?: string;
 }) => {
   try {
-    const response: any = await httpClient.post("/pasos", {
+    const data: any = await httpClient.post("/api/pasos", {
       idProspecto: payload.idProspecto,
       descripcionPaso: payload.descripcionPaso,
       resultadoPaso: payload.resultadoPaso,
       fechaPaso: payload.fechaPaso,
     });
-
-    const data = response.data;
+  
 
     setProspectoSeleccionado((prev: any) => {
       if (!prev) return prev;

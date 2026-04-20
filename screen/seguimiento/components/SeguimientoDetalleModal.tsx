@@ -154,26 +154,38 @@ export default function SeguimientoDetalleModal({
       await Linking.openURL(url);
     }
   };
+const getSiguienteEstado = () => {
+  const actual = (estadoSeguimiento || "").toUpperCase();
 
+  if (actual === "EN PROCESO") return "Cerrado";
+  if (actual === "CERRADO") return "Cancelado";
+  if (actual === "CANCELADO") return "En proceso";
+
+  return "En proceso";
+};
   // NUEVO
-  const handleActualizarEstado = async () => {
+ const handleActualizarEstado = async () => {
   try {
     if (!prospecto?.idSeguimiento) {
       Alert.alert("Error", "No existe seguimiento.");
       return;
     }
 
+    const nuevoEstado = getSiguienteEstado();
+
     setSavingEstado(true);
 
-    const data: any = await httpClient.putAuth(
-      `/seguimiento/${prospecto.idSeguimiento}/estado`,
-      {
-        estadoSeguimiento,
-      },
-      "No se pudo actualizar"
-    );
+   const data: any = await httpClient.putAuth(
+  `/api/seguimiento/${prospecto.idSeguimiento}/estado`,
+  {
+    estadoSeguimiento: nuevoEstado,
+  },
+  "No se pudo actualizar"
+);
 
-    Alert.alert("Correcto", data?.message || "Estado actualizado");
+    setEstadoSeguimiento(nuevoEstado);
+
+    Alert.alert("Correcto", data?.message || `Estado actualizado a ${nuevoEstado}`);
   } catch (error: any) {
     Alert.alert(
       "Error",
@@ -359,34 +371,48 @@ export default function SeguimientoDetalleModal({
                 gap: 16,
               }}
             >
-              <View
-                className="rounded-[26px] p-5"
-                style={{ flex: 1, backgroundColor: "#efebef" }}
-              >
-                <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
-                  Estado actual
-                </ThemedText>
+<View
+  className="rounded-[26px] p-5"
+  style={{ flex: 1, backgroundColor: "#efebef" }}
+>
+  <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
+    Estado actual
+  </ThemedText>
 
-                <View
-                  style={{
-                    marginTop: 18,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <ThemedText className="text-[22px] font-extrabold text-[#2b2530]">
-                    {estado}
-                  </ThemedText>
+  <View
+    style={{
+      marginTop: 18,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    }}
+  >
+    <ThemedText className="text-[22px] font-extrabold text-[#2b2530]">
+      {estado}
+    </ThemedText>
 
-                  <View
-                    className="rounded-xl p-2"
-                    style={{ backgroundColor: "#8d8ff3" }}
-                  >
-                    <Ionicons name="sync-outline" size={18} color="#fff" />
-                  </View>
-                </View>
-              </View>
+    <Pressable
+      onPress={handleActualizarEstado}
+      disabled={savingEstado}
+      className="rounded-xl px-3 py-2"
+      style={{
+        backgroundColor: savingEstado ? "#bdbdf3" : "#8d8ff3",
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <Ionicons name="sync-outline" size={18} color="#fff" />
+        <ThemedText className="text-[12px] font-bold text-white">
+          {savingEstado ? "Guardando..." : "Cambiar"}
+        </ThemedText>
+      </View>
+    </Pressable>
+  </View>
+
+  <ThemedText className="mt-3 text-[12px] text-[#6f6875]">
+    Siguiente estado: {getSiguienteEstado()}
+  </ThemedText>
+</View>
 
               <View
                 className="rounded-[26px] p-5"
