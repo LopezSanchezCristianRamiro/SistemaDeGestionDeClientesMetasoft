@@ -24,8 +24,6 @@ export const useLogin = () => {
         "No se pudo iniciar sesión",
       );
 
-      console.log("login response:", JSON.stringify(response));
-
       const token = response.token ?? response.accessToken;
       const usuarioId =
         response.usuarioId ?? response.idUsuario ?? response.usuario?.idUsuario;

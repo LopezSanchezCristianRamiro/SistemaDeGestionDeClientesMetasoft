@@ -1,5 +1,5 @@
 import { ScrollView, Text, View } from "react-native";
-import { SistemaItem } from "../hooks/useReportes";
+import { SistemaItem } from "../hooks/useReporte";
 
 interface Props {
   sistemas: SistemaItem[];
