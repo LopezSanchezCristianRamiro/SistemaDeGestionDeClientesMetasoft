@@ -111,7 +111,6 @@ export function CatalogoScreen() {
       return;
     }
 
-    const usuarioId = userId || 1;
     const data: ProspectoDTO = {
       nombres: form.nombres,
       primerApellido: form.primerApellido,
@@ -122,7 +121,7 @@ export function CatalogoScreen() {
       nombreEmpresa: form.empresa,
       adelanto: form.tieneAdelanto ? parseFloat(form.montoAdelanto) || 0 : 0,
       idSistemaRequerido: selectedSistema.id,
-      idUsuario: usuarioId,
+      idUsuario: userId!,
     };
 
     const result = await registrarProspecto(data);
@@ -285,7 +284,7 @@ export function CatalogoScreen() {
         showsVerticalScrollIndicator={false}
         enableOnAndroid={true}
         enableAutomaticScroll={true}
-        extraScrollHeight={Platform.OS === "android" ? 80 : 60}
+        extraScrollHeight={Platform.OS === "android" ? 20 : 60}
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >

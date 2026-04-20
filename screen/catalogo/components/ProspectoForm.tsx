@@ -109,7 +109,6 @@ export const ProspectoForm = memo(
         return;
       }
 
-      const usuarioId = userId || 1;
       const data: ProspectoDTO = {
         nombres: form.nombres,
         primerApellido: form.primerApellido,
@@ -120,7 +119,7 @@ export const ProspectoForm = memo(
         nombreEmpresa: form.empresa,
         adelanto: form.tieneAdelanto ? parseFloat(form.montoAdelanto) || 0 : 0,
         idSistemaRequerido: sistema.id,
-        idUsuario: usuarioId,
+        idUsuario: userId!,
       };
 
       const result = await registrarProspecto(data);
@@ -149,7 +148,7 @@ export const ProspectoForm = memo(
         showsVerticalScrollIndicator={true}
         enableOnAndroid={true}
         enableAutomaticScroll={true}
-        extraScrollHeight={Platform.OS === "android" ? 200 : 120}
+        extraScrollHeight={Platform.OS === "android" ? 20 : 120}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1 }}
         resetScrollToCoords={{ x: 0, y: 0 }}
