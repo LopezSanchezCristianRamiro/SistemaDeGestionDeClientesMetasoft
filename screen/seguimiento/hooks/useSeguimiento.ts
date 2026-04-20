@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { httpClient } from "../../../http/httpClient";
+import { getUsuarioId } from "../../../storage/storage";
 import { SeguimientoResponse } from "../types/seguimiento";
 
 export function useSeguimiento() {
@@ -12,8 +13,10 @@ export function useSeguimiento() {
       setLoading(true);
       setError("");
 
+      const usuarioId = await getUsuarioId();
+
       const response = await httpClient.getAuth<SeguimientoResponse>(
-        "/api/seguimiento",
+        `/api/seguimiento?idUsuario=${usuarioId}`,
         "No se pudo cargar el seguimiento",
       );
 
