@@ -1,6 +1,7 @@
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { memo } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
 import { Sistema } from "../types/sistema";
 
@@ -54,7 +55,8 @@ export const SistemaCard = memo(({ sistema, onPress }: SistemaCardProps) => {
             width: CARD_WIDTH,
             height: IMAGE_HEIGHT,
           }}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="disk"
         />
       </View>
 

@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Image, Modal, ScrollView, TouchableOpacity, View } from "react-native";
+import { Modal, ScrollView, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
 import { Sistema } from "../types/sistema";
 
@@ -51,7 +52,8 @@ export function SistemaDetalleModal({ visible, onClose, sistema }: Props) {
               <Image
                 source={{ uri: sistema.foto_url }}
                 className="w-full h-56"
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="disk"
               />
             </View>
             <View className="p-5">

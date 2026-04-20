@@ -8,11 +8,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
+import { httpClient } from "../../http/httpClient";
 import MetricCard from "./components/MetricCard";
 import ProspectoRow from "./components/ProspectoRow";
 import SeguimientoDetalleModal from "./components/SeguimientoDetalleModal";
 import { useSeguimiento } from "./hooks/useSeguimiento";
-
 type FilterType = "Todos" | "Pendientes" | "Contactados";
 
 export default function SeguimientoScreen() {
@@ -45,54 +45,48 @@ const handleGuardarPaso = async (payload: {
   fechaPaso: string;
   tipoActividad?: string;
 }) => {
-  const response = await fetch("http://localhost:8000/api/pasos", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
+  try {
+    const response: any = await httpClient.post("/pasos", {
       idProspecto: payload.idProspecto,
       descripcionPaso: payload.descripcionPaso,
       resultadoPaso: payload.resultadoPaso,
       fechaPaso: payload.fechaPaso,
-    }),
-  });
+    });
 
-  const raw = await response.text();
-  console.log("STATUS:", response.status);
-  console.log("RESPUESTA PASOS:", raw);
+    const data = response.data;
 
-  if (!response.ok) {
-    throw new Error(`No se pudo guardar el paso. ${raw}`);
+    setProspectoSeleccionado((prev: any) => {
+      if (!prev) return prev;
+
+      const nuevoPaso = {
+        id: data?.paso?.idPaso ?? Date.now(),
+        titulo: payload.descripcionPaso || payload.tipoActividad || "Paso",
+        fecha: payload.fechaPaso,
+        resultado: payload.resultadoPaso,
+        tipo:
+          payload.tipoActividad?.toLowerCase() === "llamada"
+            ? "llamada"
+            : payload.tipoActividad?.toLowerCase() === "visita"
+              ? "visita"
+              : payload.tipoActividad?.toLowerCase() === "email"
+                ? "documento"
+                : "otro",
+      };
+
+      return {
+        ...prev,
+        proximoPaso: payload.descripcionPaso || prev.proximoPaso,
+        historialPasos: [nuevoPaso, ...(prev.historialPasos || [])],
+      };
+    });
+  } catch (error: any) {
+    console.log("STATUS:", error?.response?.status);
+    console.log("RESPUESTA PASOS:", error?.response?.data);
+
+    throw new Error(
+      error?.response?.data?.message || "No se pudo guardar el paso."
+    );
   }
-
-  const data = JSON.parse(raw);
-
-  setProspectoSeleccionado((prev: any) => {
-    if (!prev) return prev;
-
-    const nuevoPaso = {
-      id: data?.paso?.idPaso ?? Date.now(),
-      titulo: payload.descripcionPaso || payload.tipoActividad || "Paso",
-      fecha: payload.fechaPaso,
-      resultado: payload.resultadoPaso,
-      tipo:
-        payload.tipoActividad?.toLowerCase() === "llamada"
-          ? "llamada"
-          : payload.tipoActividad?.toLowerCase() === "visita"
-            ? "visita"
-            : payload.tipoActividad?.toLowerCase() === "email"
-              ? "documento"
-              : "otro",
-    };
-
-    return {
-      ...prev,
-      proximoPaso: payload.descripcionPaso || prev.proximoPaso,
-      historialPasos: [nuevoPaso, ...(prev.historialPasos || [])],
-    };
-  });
 };
 const handleOpenDetalle = (item: any) => {
   console.log("ITEM ORIGINAL:", item);

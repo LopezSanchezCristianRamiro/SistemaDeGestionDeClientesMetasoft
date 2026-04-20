@@ -111,7 +111,6 @@ export function CatalogoScreen() {
       return;
     }
 
-    const usuarioId = userId || 1;
     const data: ProspectoDTO = {
       nombres: form.nombres,
       primerApellido: form.primerApellido,
@@ -122,7 +121,7 @@ export function CatalogoScreen() {
       nombreEmpresa: form.empresa,
       adelanto: form.tieneAdelanto ? parseFloat(form.montoAdelanto) || 0 : 0,
       idSistemaRequerido: selectedSistema.id,
-      idUsuario: usuarioId,
+      idUsuario: userId!,
     };
 
     const result = await registrarProspecto(data);
@@ -161,7 +160,11 @@ export function CatalogoScreen() {
         </View>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 10, paddingBottom: 50 }}
+          contentContainerStyle={{
+            paddingHorizontal: 4,
+            paddingVertical: 10,
+            paddingBottom: 50,
+          }}
           refreshControl={
             <RefreshControl
               refreshing={loading}
@@ -179,7 +182,7 @@ export function CatalogoScreen() {
               />
             </View>
           ) : (
-            <View className="w-full flex-row flex-wrap justify-center gap-1">
+            <View className="w-full flex-row flex-wrap justify-center">
               {sistemas.map((item) => (
                 <SistemaCard
                   key={item.id}
@@ -189,9 +192,13 @@ export function CatalogoScreen() {
               ))}
               {Array.from({ length: 4 }).map((_, i) => (
                 <View
-                  key={i}
-                  className="flex-1 min-w-[260px] max-w-[450px] mx-1"
-                  style={{ height: 0 }}
+                  key={`phantom-${i}`}
+                  style={{
+                    width: 180, // Mismo tamaño que CARD_WIDTH
+                    marginHorizontal: 6, // Mismo margen que la card real
+                    height: 0,
+                  }}
+                  pointerEvents="none"
                 />
               ))}
             </View>
@@ -285,7 +292,7 @@ export function CatalogoScreen() {
         showsVerticalScrollIndicator={false}
         enableOnAndroid={true}
         enableAutomaticScroll={true}
-        extraScrollHeight={Platform.OS === "android" ? 80 : 60}
+        extraScrollHeight={Platform.OS === "android" ? 20 : 60}
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >
