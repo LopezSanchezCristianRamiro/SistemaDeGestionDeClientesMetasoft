@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
 const isWeb = Platform.OS === "web";
+const SISTEMAS_CACHE_KEY = "sistemas_catalogo_cache";
 
 const storage = {
   getItem: (key: string) => {
@@ -76,3 +77,16 @@ export async function getUsuarioData(): Promise<{
     return null;
   }
 }
+
+export const saveSistemasCache = (sistemas: any[]) =>
+  storage.setItem(SISTEMAS_CACHE_KEY, JSON.stringify(sistemas));
+
+export const getSistemasCache = async (): Promise<any[] | null> => {
+  const raw = await storage.getItem(SISTEMAS_CACHE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
