@@ -104,7 +104,7 @@ export const ProspectoForm = memo(
         Toast.show({
           type: "error",
           text1: "Atención",
-          text2: "Complete los campos obligatorios (*)",
+          text2: "Ingrese el nombre y teléfono del prospecto",
         });
         return;
       }
@@ -175,7 +175,7 @@ export const ProspectoForm = memo(
           </ThemedText>
 
           <InputField
-            label="Nombres"
+            label="Nombre Completo"
             required
             value={form.nombres}
             onChangeText={(text) => updateForm({ nombres: text })}

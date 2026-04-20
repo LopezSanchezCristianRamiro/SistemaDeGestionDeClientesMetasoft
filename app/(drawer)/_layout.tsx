@@ -8,12 +8,19 @@ import { useResponsive } from "../../hooks/useResponsive";
 
 const TAB_ITEMS = [
   { label: "Catálogo", route: "/catalogo", icon: "grid-outline" } as const,
-  { label: "Seguimiento", route: "/seguimiento", icon: "time-outline" } as const,
-  { label: "Reportes", route: "/reportes", icon: "stats-chart-outline" } as const,
+  {
+    label: "Seguimiento",
+    route: "/seguimiento",
+    icon: "time-outline",
+  } as const,
+  {
+    label: "Reportes",
+    route: "/reportes",
+    icon: "stats-chart-outline",
+  } as const,
   { label: "Perfil", route: "/perfil", icon: "person-outline" } as const,
 ];
 
-// Drawer stub para satisfacer la prop de DrawerContentComponentProps
 const STUB_DRAWER_PROPS = {
   navigation: { closeDrawer: () => {} },
 } as any;
@@ -26,7 +33,8 @@ export default function DrawerGroupLayout() {
 
   const BottomTabs = () => {
     const activeRoute = TAB_ITEMS.find(
-      (item) => pathname === item.route || pathname.startsWith(item.route + "/"),
+      (item) =>
+        pathname === item.route || pathname.startsWith(item.route + "/"),
     );
 
     return (
@@ -69,7 +77,6 @@ export default function DrawerGroupLayout() {
     );
   };
 
-  // ✅ Layout desktop: sidebar fijo a la izquierda + contenido a la derecha
   if (isDesktop) {
     return (
       <View style={{ flex: 1, flexDirection: "row" }}>
@@ -97,7 +104,6 @@ export default function DrawerGroupLayout() {
     );
   }
 
-  // Layout móvil: stack + bottom tabs
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, paddingBottom: 64 }}>
