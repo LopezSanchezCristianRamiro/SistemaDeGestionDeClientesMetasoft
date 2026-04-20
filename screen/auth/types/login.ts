@@ -3,14 +3,23 @@ export type LoginCredentials = {
   contrasenia: string;
 };
 
-export type LoginResponse = {
+export interface LoginResponse {
+  message?: string;
   token?: string;
   accessToken?: string;
-  usuarioId?: string | number;
-  idUsuario?: string | number;
+  usuarioId?: number;
+  idUsuario?: number;
   nombreUsuario?: string;
   usuario?: {
-    id?: string | number;
-    nombreUsuario?: string;
+    idUsuario: number;
+    nombreUsuario: string;
+    estado: string;
+    rol: string;
+    persona: {
+      nombres: string;
+      primerApellido: string;
+      segundoApellido?: string;
+      correoElectronico: string;
+    };
   };
-};
+}

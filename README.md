@@ -84,3 +84,7 @@ Los layouts deben definir el tipo de navegación:
 - `app/_layout.tsx` → layout raíz.
 - `app/(auth)/_layout.tsx` → stack para login y futuras pantallas públicas.
 - `app/(drawer)/_layout.tsx` → drawer para el área privada.
+Limpia el caché de Metro
+npm start -- --clear
+php artisan serve --host=0.0.0.0 --port=8001
+npm run start -- --clear

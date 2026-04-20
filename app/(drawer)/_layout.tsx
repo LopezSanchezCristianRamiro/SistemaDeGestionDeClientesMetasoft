@@ -2,22 +2,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { Href, Stack, usePathname, useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CustomDrawerContent } from "../../components/CustomDrawerContent";
 import { ThemedText } from "../../components/ThemedText";
 import { useResponsive } from "../../hooks/useResponsive";
 
 const TAB_ITEMS = [
   { label: "Catálogo", route: "/catalogo", icon: "grid-outline" } as const,
-  {
-    label: "Seguimiento",
-    route: "/seguimiento",
-    icon: "time-outline",
-  } as const,
-  {
-    label: "Reportes",
-    route: "/reportes",
-    icon: "stats-chart-outline",
-  } as const,
+  { label: "Seguimiento", route: "/seguimiento", icon: "time-outline" } as const,
+  { label: "Reportes", route: "/reportes", icon: "stats-chart-outline" } as const,
+  { label: "Perfil", route: "/perfil", icon: "person-outline" } as const,
 ];
+
+// Drawer stub para satisfacer la prop de DrawerContentComponentProps
+const STUB_DRAWER_PROPS = {
+  navigation: { closeDrawer: () => {} },
+} as any;
 
 export default function DrawerGroupLayout() {
   const router = useRouter();
@@ -27,8 +26,7 @@ export default function DrawerGroupLayout() {
 
   const BottomTabs = () => {
     const activeRoute = TAB_ITEMS.find(
-      (item) =>
-        pathname === item.route || pathname.startsWith(item.route + "/"),
+      (item) => pathname === item.route || pathname.startsWith(item.route + "/"),
     );
 
     return (
@@ -71,21 +69,46 @@ export default function DrawerGroupLayout() {
     );
   };
 
-  return (
-    <View style={{ flex: 1 }}>
-      <View style={{ flex: 1, paddingBottom: !isDesktop ? 64 : 0 }}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            gestureEnabled: !isDesktop,
+  // ✅ Layout desktop: sidebar fijo a la izquierda + contenido a la derecha
+  if (isDesktop) {
+    return (
+      <View style={{ flex: 1, flexDirection: "row" }}>
+        {/* Sidebar fijo */}
+        <View
+          style={{
+            width: 240,
+            borderRightWidth: 1,
+            borderRightColor: "#e5e7eb",
           }}
         >
+          <CustomDrawerContent {...STUB_DRAWER_PROPS} />
+        </View>
+
+        {/* Contenido principal */}
+        <View style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
+            <Stack.Screen name="catalogo" />
+            <Stack.Screen name="seguimiento" />
+            <Stack.Screen name="reportes" />
+            <Stack.Screen name="perfil" />
+          </Stack>
+        </View>
+      </View>
+    );
+  }
+
+  // Layout móvil: stack + bottom tabs
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingBottom: 64 }}>
+        <Stack screenOptions={{ headerShown: false, gestureEnabled: true }}>
           <Stack.Screen name="catalogo" />
           <Stack.Screen name="seguimiento" />
           <Stack.Screen name="reportes" />
+          <Stack.Screen name="perfil" />
         </Stack>
       </View>
-      {!isDesktop && <BottomTabs />}
+      <BottomTabs />
     </View>
   );
 }

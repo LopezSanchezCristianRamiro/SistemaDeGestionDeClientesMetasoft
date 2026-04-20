@@ -41,3 +41,38 @@ export const saveEmail = (email: string) => storage.setItem("email", email);
 export const getEmail = () => storage.getItem("email");
 
 export const removeEmail = () => storage.removeItem("email");
+
+export async function clearStorage(): Promise<void> {
+  await Promise.all([
+    storage.removeItem("token"),
+    storage.removeItem("usuarioId"),
+    storage.removeItem("email"),
+    storage.removeItem("usuarioData"),
+  ]);
+}
+
+export async function saveUsuarioData(data: {
+  nombreUsuario: string;
+  nombres: string;
+  apellido: string;
+  correo: string;
+  rol: string;
+}): Promise<void> {
+  await storage.setItem("usuarioData", JSON.stringify(data));
+}
+
+export async function getUsuarioData(): Promise<{
+  nombreUsuario: string;
+  nombres: string;
+  apellido: string;
+  correo: string;
+  rol: string;
+} | null> {
+  const raw = await storage.getItem("usuarioData");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}

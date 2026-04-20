@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { httpClient } from "../../../http/httpClient";
-import { saveToken, saveUsuarioId } from "../../../storage/storage";
+import { saveToken, saveUsuarioData, saveUsuarioId } from "../../../storage/storage";
 import { LoginCredentials, LoginResponse } from "../types/login";
 
 type LoginResult = {
@@ -24,9 +24,11 @@ export const useLogin = () => {
         "No se pudo iniciar sesión",
       );
 
+      console.log("login response:", JSON.stringify(response));
+
       const token = response.token ?? response.accessToken;
       const usuarioId =
-        response.usuarioId ?? response.idUsuario ?? response.usuario?.id;
+        response.usuarioId ?? response.idUsuario ?? response.usuario?.idUsuario;
       const nombreUsuario =
         response.nombreUsuario ??
         response.usuario?.nombreUsuario ??
@@ -37,6 +39,19 @@ export const useLogin = () => {
       }
 
       await saveToken(token);
+
+      if (response.usuario) {
+        const p = response.usuario.persona;
+        const usuarioData = {
+          nombreUsuario: response.usuario.nombreUsuario ?? nombreUsuario ?? "",
+          nombres: p?.nombres ?? "",
+          apellido: `${p?.primerApellido ?? ""} ${p?.segundoApellido ?? ""}`.trim(),
+          correo: p?.correoElectronico ?? "",
+          rol: response.usuario.rol ?? "",
+        };
+        await saveUsuarioData(usuarioData);
+        console.log("guardando usuarioData:", JSON.stringify(usuarioData));
+      }
 
       if (usuarioId !== undefined && usuarioId !== null) {
         await saveUsuarioId(String(usuarioId));
@@ -53,12 +68,24 @@ export const useLogin = () => {
 
       return { success: true as const, result };
     } catch (error) {
+      const errorMessage = (() => {
+        if (error instanceof Error) return error.message;
+        if (typeof error === "object" && error !== null) {
+          const anyErr = error as { message?: unknown; status?: unknown };
+          if (typeof anyErr.message === "string" && anyErr.message.trim()) {
+            return anyErr.message;
+          }
+          if (typeof anyErr.status === "number") {
+            return `Error HTTP ${anyErr.status}`;
+          }
+        }
+        if (typeof error === "string" && error.trim()) return error;
+        return "No se pudo iniciar sesión";
+      })();
+
       return {
         success: false as const,
-        error:
-          error instanceof Error
-            ? error.message
-            : "No se pudo iniciar sesión",
+        error: errorMessage,
       };
     } finally {
       setLoading(false);
