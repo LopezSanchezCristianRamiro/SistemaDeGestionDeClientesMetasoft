@@ -190,107 +190,81 @@ export default function ReportesScreen() {
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <Text style={styles.sectionTitle}>Seguimiento</Text>
-              <Text style={{ fontSize: 13, color: "#E1007E", fontWeight: "600" }}>Ver lista detallada →</Text>
             </View>
-            {/* Headers */}
-            <View style={{ flexDirection: "row", marginBottom: 8 }}>
-              {["NOMBRE DE PROSPECTO", "SISTEMA", "ADELANTO", "ESTADO"].map((h) => (
-                <Text key={h} style={{ flex: 1, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>
-                  {h}
-                </Text>
-              ))}
-            </View>
-            {seguimientos?.slice(0, 5).map((s: any, i: number) => (
-              <View
-                key={s.id}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingVertical: 10,
-                  borderTopWidth: i === 0 ? 0 : 1,
-                  borderTopColor: "#F3F4F6",
-                }}
-              >
-                {/* Nombre */}
-                <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ minWidth: 500 }}>
+
+                {/* Headers */}
+                <View style={{ flexDirection: "row", marginBottom: 8 }}>
+                  <Text style={{ width: 160, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>NOMBRE DE PROSPECTO</Text>
+                  <Text style={{ width: 120, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>SISTEMA</Text>
+                  <Text style={{ width: 110, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>ADELANTO</Text>
+                  <Text style={{ width: 100, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>ESTADO</Text>
+                </View>
+
+                {seguimientos?.slice(0, 5).map((s: any, i: number) => (
                   <View
+                    key={s.id}
                     style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 17,
-                      backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                      flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "center",
+                      paddingVertical: 10,
+                      borderTopWidth: i === 0 ? 0 : 1,
+                      borderTopColor: "#F3F4F6",
                     }}
                   >
-                    <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>
-                      {getInitials(s.nombre)}
+                    {/* Nombre */}
+                    <View style={{ width: 160, flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <View style={{
+                        width: 34, height: 34, borderRadius: 17,
+                        backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
+                        alignItems: "center", justifyContent: "center",
+                      }}>
+                        <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{getInitials(s.nombre)}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E0A3C" }} numberOfLines={1}>{s.nombre}</Text>
+                        <Text style={{ fontSize: 10, color: "#9CA3AF" }} numberOfLines={1}>{s.empresa}</Text>
+                      </View>
+                    </View>
+
+                    {/* Sistema */}
+                    <View style={{ width: 120 }}>
+                      <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start" }}>
+                        <Text style={{ fontSize: 10, color: "#7C3AED", fontWeight: "600" }} numberOfLines={1}>{s.sistemaRequerido}</Text>
+                      </View>
+                    </View>
+
+                    {/* Adelanto */}
+                    <Text style={{ width: 110, fontSize: 12, fontWeight: "600", color: "#1E0A3C" }}>
+                      Bs. {s.adelanto.toLocaleString("es-BO")}
                     </Text>
+
+                    {/* Estado */}
+                    <View style={{ width: 100 }}>
+                      <View style={{
+                        backgroundColor:
+                          s.estadoSeguimiento === "Pendiente" ? "#E0F2FE"
+                          : s.estadoSeguimiento === "Cerrado" ? "#F3F4F6" : "#FDF2F8",
+                        borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start",
+                      }}>
+                        <Text style={{
+                          fontSize: 10, fontWeight: "600",
+                          color:
+                            s.estadoSeguimiento === "Pendiente" ? "#0EA5E9"
+                            : s.estadoSeguimiento === "Cerrado" ? "#6B7280" : "#E1007E",
+                        }} numberOfLines={1}>
+                          {s.estadoSeguimiento}
+                        </Text>
+                      </View>
+                    </View>
+
                   </View>
-                  <View>
-                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E0A3C" }} numberOfLines={1}>
-                      {s.nombre}
-                    </Text>
-                    <Text style={{ fontSize: 10, color: "#9CA3AF" }} numberOfLines={1}>
-                      {s.empresa}
-                    </Text>
-                  </View>
-                </View>
-                {/* Sistema */}
-                <View style={{ flex: 1 }}>
-                  <View
-                    style={{
-                      backgroundColor: "#F0EEFF",
-                      borderRadius: 20,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      alignSelf: "flex-start",
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, color: "#7C3AED", fontWeight: "600" }} numberOfLines={1}>
-                      {s.sistemaRequerido}
-                    </Text>
-                  </View>
-                </View>
-                {/* Adelanto */}
-                <Text style={{ flex: 0.8, fontSize: 12, fontWeight: "600", color: "#1E0A3C" }}>
-                  Bs. {s.adelanto.toLocaleString("es-BO")}
-                </Text>
-                {/* Estado */}
-                <View style={{ flex: 0.9 }}>
-                  <View
-                    style={{
-                      backgroundColor:
-                        s.estadoSeguimiento === "Pendiente"
-                          ? "#E0F2FE"
-                          : s.estadoSeguimiento === "Cerrado"
-                          ? "#F3F4F6"
-                          : "#FDF2F8",
-                      borderRadius: 20,
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      alignSelf: "flex-start",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 10,
-                        fontWeight: "600",
-                        color:
-                          s.estadoSeguimiento === "Pendiente"
-                            ? "#0EA5E9"
-                            : s.estadoSeguimiento === "Cerrado"
-                            ? "#6B7280"
-                            : "#E1007E",
-                      }}
-                      numberOfLines={1}
-                    >
-                      {s.estadoSeguimiento}
-                    </Text>
-                  </View>
-                </View>
+                ))}
+
               </View>
-            ))}
+            </ScrollView>
           </View>
 
           {/* ── INTERÉS + SISTEMAS (lado a lado) ── */}
@@ -316,9 +290,6 @@ export default function ReportesScreen() {
             <View style={[styles.sectionCard, { flex: 1 }]}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <Text style={styles.sectionTitle}>Sistema Popular</Text>
-                <View style={{ backgroundColor: "#F0EEFF", borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-                  <Text style={{ fontSize: 8, fontWeight: "700", color: "#7C3AED" }}>LEAD VOLUME</Text>
-                </View>
               </View>
               {sistemasMasSolicitados?.slice(0, 4).map((s: any) => (
                 <View key={s.nombre} style={{ marginBottom: 10 }}>
@@ -346,7 +317,7 @@ export default function ReportesScreen() {
           {/* ── RANKING ── */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <View>
+              <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={styles.sectionTitle}>Ranking de Productividad (Personal)</Text>
                 <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Desempeño mensual de azafatas e impulsadores</Text>
               </View>
