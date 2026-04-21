@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/Toaster";
+import { getUsuarioId } from "@/storage/storage";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useRef } from "react";
 import {
@@ -65,6 +66,22 @@ export function CatalogoScreen() {
 
   const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
   const montoInputRef = useRef<TextInput>(null);
+
+  React.useEffect(() => {
+    const cargarUsuario = async () => {
+      const id = await getUsuarioId();
+      if (id) {
+        setUserId(parseInt(id, 10));
+      } else {
+        // Opcional: mostrar advertencia o usar un valor por defecto
+        console.warn(
+          "No se encontró usuario en el storage, se usará ID 1 por defecto",
+        );
+        setUserId(1);
+      }
+    };
+    cargarUsuario();
+  }, []);
 
   React.useEffect(() => {
     if (loading) {
@@ -156,7 +173,7 @@ export function CatalogoScreen() {
       idSistemaRequerido: selectedSistema.id,
       idUsuario: userId!,
     };
-
+    console.log("Registrando prospecto:", data);
     const result = await registrarProspecto(data);
     if (result.success) {
       Toast.show({

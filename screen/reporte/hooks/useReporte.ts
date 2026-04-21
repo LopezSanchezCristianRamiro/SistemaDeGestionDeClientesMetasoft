@@ -1,7 +1,7 @@
 // screen/reporte/hooks/useReporte.ts
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import { httpClient } from "../../../http/httpClient";
-
 
 interface InteresProspectos {
   Alto: number;
@@ -11,7 +11,7 @@ interface InteresProspectos {
   porcentajes: { Alto: number; Medio: number; Bajo: number };
 }
 
-interface SistemaSolicitado {
+export interface SistemaItem {
   nombre: string;
   leads: number;
 }
@@ -37,10 +37,12 @@ interface ReporteData {
   gananciaPotencial: number;
   porEstadoSeguimiento: Record<string, number>;
   interesProspectos: InteresProspectos;
-  sistemasMasSolicitados: SistemaSolicitado[];
+  sistemasMasSolicitados: SistemaItem[];
   seguimientos: Seguimiento[];
   rankingProductividad: RankingItem[];
 }
+
+const CACHE_KEY = "reportes_cache";
 
 export function useReportes() {
   const [data, setData] = useState<ReporteData | null>(null);
@@ -50,9 +52,16 @@ export function useReportes() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const cached = await AsyncStorage.getItem(CACHE_KEY);
+    if (cached) {
+      setData(JSON.parse(cached));
+      setLoading(false); // ← quita el spinner con datos viejos
+    }
     try {
       const json = await httpClient.getAuth<ReporteData>("/api/reportes");
       setData(json);
+      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(json));
     } catch (e: any) {
       setError(e.message ?? "Error desconocido");
     } finally {
