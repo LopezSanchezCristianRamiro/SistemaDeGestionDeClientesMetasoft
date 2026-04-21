@@ -1,7 +1,26 @@
+/**
+ * @file ProspectoModal.tsx
+ * @description Modal principal para el registro de prospectos.
+ *
+ * Desktop: Layout de dos columnas — columna izquierda con ScrollView
+ *          (info del sistema + precio, ahora completamente visible)
+ *          y columna derecha con ProspectoForm.
+ *
+ * Mobile:  Modal fullscreen con header de sistema y ProspectoForm.
+ */
+
 import { Toaster } from "@/components/Toaster";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Dimensions, Image, Modal, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
 import { Sistema } from "../types/sistema";
 import { ProspectoForm } from "./ProspectoForm";
@@ -12,16 +31,11 @@ interface Props {
   sistema: Sistema | null;
 }
 
-/**
- * Modal para el registro de prospectos.
- * En escritorio muestra un layout de dos columnas (info del sistema + formulario).
- * En móvil, el formulario ocupa la pantalla completa con scroll optimizado para teclado.
- */
 export function ProspectoModal({ visible, onClose, sistema }: Props) {
   if (!sistema) return null;
 
   const lineasDescripcion = sistema.descripcion.split(";");
-  const isDesktop = Dimensions.get("window").width >= 768;
+  const isDesktop = Dimensions.get("window").width >= 1024;
 
   if (isDesktop) {
     return (
@@ -40,23 +54,51 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
               maxHeight: Dimensions.get("window").height * 0.9,
             }}
           >
-            <View className="flex-row h-full">
-              <View className="w-2/5 bg-surface-dark p-6">
-                <TouchableOpacity onPress={onClose} className="mb-6 self-start">
-                  <ThemedText className="text-status-error font-bold text-xs">
-                    <Ionicons name="close" size={24} color="#FF5252" />
-                  </ThemedText>
+            <View className="flex-row" style={{ height: "100%" }}>
+              <ScrollView
+                style={{ width: "40%" }}
+                className="bg-surface-dark"
+                contentContainerStyle={{ padding: 24 }}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
+                {/* Botón cerrar */}
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="mb-6 self-start"
+                  accessibilityRole="button"
+                  accessibilityLabel="Cerrar modal"
+                >
+                  <Ionicons name="close" size={24} color="#FF5252" />
                 </TouchableOpacity>
+
+                {/* Nombre del sistema */}
                 <ThemedText className="text-brand-primary text-3xl font-black mb-6 uppercase">
                   {sistema.nombre}
                 </ThemedText>
+
+                {/* Imagen */}
                 <View className="w-full aspect-square rounded-xl overflow-hidden mb-6">
+                  <LinearGradient
+                    colors={["#6b21a8", "#c026d3", "#f43f5e"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  />
                   <Image
                     source={{ uri: sistema.foto_url }}
                     className="w-full h-full"
                     resizeMode="cover"
                   />
                 </View>
+
+                {/* Descripción por líneas */}
                 <View className="mb-6">
                   {lineasDescripcion.map((linea, idx) => (
                     <View key={idx} className="flex-row mb-2">
@@ -69,6 +111,8 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
                     </View>
                   ))}
                 </View>
+
+                {/* Precio — siempre visible gracias al ScrollView */}
                 <View className="bg-surface-dark/80 p-5 rounded-xl border border-white/10">
                   <ThemedText className="text-white/50 text-[10px] font-bold uppercase mb-1">
                     Inversión del Sistema
@@ -77,9 +121,10 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
                     Bs. {sistema.precio.toLocaleString()}
                   </ThemedText>
                 </View>
-              </View>
+              </ScrollView>
 
-              <View className="w-3/5">
+              {/* Columna derecha: formulario */}
+              <View style={{ width: "60%" }}>
                 <ProspectoForm
                   sistema={sistema}
                   onSuccess={onClose}
@@ -102,16 +147,17 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
       statusBarTranslucent
     >
       <View className="flex-1 bg-surface-container">
+        {/* Header con info resumida del sistema */}
         <View className="bg-surface-dark px-5 pt-14 pb-4 ios:pt-16">
           <TouchableOpacity
             onPress={onClose}
             className="absolute top-12 right-5 z-10 ios:top-14"
             accessibilityLabel="Cerrar"
+            accessibilityRole="button"
           >
-            <ThemedText className="text-status-error font-bold text-sm">
-              <Ionicons name="close" size={24} color="red" />
-            </ThemedText>
+            <Ionicons name="close" size={24} color="red" />
           </TouchableOpacity>
+
           <View className="flex-row items-center">
             <Image
               source={{ uri: sistema.foto_url }}
@@ -127,6 +173,7 @@ export function ProspectoModal({ visible, onClose, sistema }: Props) {
               </ThemedText>
             </View>
           </View>
+
           <View className="mt-3 flex-row flex-wrap">
             {lineasDescripcion.slice(0, 2).map((linea, idx) => (
               <View key={idx} className="flex-row items-center mr-4">
