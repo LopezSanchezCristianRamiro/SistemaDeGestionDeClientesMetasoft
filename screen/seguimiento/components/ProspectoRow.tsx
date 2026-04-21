@@ -11,13 +11,16 @@ type ProspectoItem = {
   estado?: string;
   anticipo?: number | string;
   siguientePaso?: string;
+  proximoPaso?: string;
+  rubro?: string;
+  sistemaRequerido?: string;
+  softwareRequerido?: string;
 };
 
 type Props = {
   item: any;
   onPressDetalle?: (item: any) => void;
 };
-
 
 function getInitials(nombreCompleto: string) {
   return nombreCompleto
@@ -29,32 +32,32 @@ function getInitials(nombreCompleto: string) {
 }
 
 function getEstadoColors(estado?: string) {
-  const value = (estado || "").toUpperCase();
+  const value = (estado || "").toUpperCase().trim();
 
-  if (value.includes("PEND")) {
+  if (value === "EN PROCESO") {
     return {
-      bg: "#f4dfaa",
-      dot: "#c98a1c",
-      text: "#855c0e",
-      label: "Pendiente",
+      bg: "#e8e4ff",
+      dot: "#6d5efc",
+      text: "#4b3fd1",
+      label: "En proceso",
     };
   }
 
-  if (value.includes("CONTACT")) {
+  if (value === "CERRADO") {
     return {
-      bg: "#d8f0df",
+      bg: "#dff5e6",
       dot: "#2e9b57",
       text: "#226f40",
-      label: "Contactado",
+      label: "Cerrado",
     };
   }
 
-  if (value.includes("CITA")) {
+  if (value === "CANCELADO") {
     return {
-      bg: "#d9e8ff",
-      dot: "#3b82f6",
-      text: "#295fb5",
-      label: "Con cita",
+      bg: "#f1e8ee",
+      dot: "#8f8790",
+      text: "#5f5863",
+      label: "Cancelado",
     };
   }
 
@@ -97,6 +100,11 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
   const empresaMostrar = item.empresa || "Sin empresa";
   const interesMostrar = item.interes || "Sin interés";
   const pasoMostrar = item.proximoPaso || item.siguientePaso || "Sin próximo paso";
+  const sistemaMostrar =
+    item.sistemaRequerido ||
+    item.softwareRequerido ||
+    item.rubro ||
+    "Sin sistema";
   const anticipoMostrar =
     item.anticipo !== undefined && item.anticipo !== null && item.anticipo !== ""
       ? `$${item.anticipo}`
@@ -139,9 +147,16 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
 
             <ThemedText
               className="mt-2 text-[14px] leading-5 text-[#7b7480]"
-              numberOfLines={2}
+              numberOfLines={1}
             >
               {empresaMostrar}
+            </ThemedText>
+
+            <ThemedText
+              className="mt-1 text-[13px] font-semibold text-[#4c57c7]"
+              numberOfLines={1}
+            >
+              Sistema: {sistemaMostrar}
             </ThemedText>
           </View>
         </View>
@@ -173,19 +188,19 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
         <InfoBlock label="Próximo paso" value={pasoMostrar} />
 
         <Pressable
-  onPress={() => onPressDetalle?.(item)}
-  className="mt-4 flex-row items-center justify-center rounded-2xl px-4 py-3"
-  style={{
-    borderWidth: 1,
-    borderColor: "#d9cfd8",
-    backgroundColor: "#faf7fa",
-  }}
->
-  <Ionicons name="eye-outline" size={16} color="#2d2732" />
-  <ThemedText className="ml-2 text-[14px] font-bold text-[#2d2732]">
-    Ver detalles
-  </ThemedText>
-</Pressable>
+          onPress={() => onPressDetalle?.(item)}
+          className="mt-4 flex-row items-center justify-center rounded-2xl px-4 py-3"
+          style={{
+            borderWidth: 1,
+            borderColor: "#d9cfd8",
+            backgroundColor: "#faf7fa",
+          }}
+        >
+          <Ionicons name="eye-outline" size={16} color="#2d2732" />
+          <ThemedText className="ml-2 text-[14px] font-bold text-[#2d2732]">
+            Ver detalles
+          </ThemedText>
+        </Pressable>
       </View>
     );
   }
@@ -216,15 +231,23 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
         <View className="ml-3 flex-1">
           <ThemedText
             className="text-[16px] font-extrabold text-[#201b24]"
-            numberOfLines={2}
+            numberOfLines={1}
           >
             {nombreMostrar}
           </ThemedText>
+
           <ThemedText
             className="mt-1 text-[13px] text-[#7b7480]"
-            numberOfLines={2}
+            numberOfLines={1}
           >
             {empresaMostrar}
+          </ThemedText>
+
+          <ThemedText
+            className="mt-1 text-[12px] font-semibold text-[#4c57c7]"
+            numberOfLines={1}
+          >
+            Sistema: {sistemaMostrar}
           </ThemedText>
         </View>
       </View>

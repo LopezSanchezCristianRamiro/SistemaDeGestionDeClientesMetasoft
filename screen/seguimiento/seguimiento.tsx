@@ -1,43 +1,73 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   View,
-  useWindowDimensions,
+  useWindowDimensions
 } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
 import { httpClient } from "../../http/httpClient";
+import Buscador from "./components/Buscador";
+import Filtros, { FilterType } from "./components/Filtros";
 import MetricCard from "./components/MetricCard";
 import ProspectoRow from "./components/ProspectoRow";
 import SeguimientoDetalleModal from "./components/SeguimientoDetalleModal";
 import { useSeguimiento } from "./hooks/useSeguimiento";
-type FilterType = "Todos" | "Pendientes" | "Contactados";
 
 export default function SeguimientoScreen() {
-  const { data, loading, error } = useSeguimiento();
+  const { data, loading, error, refetch } = useSeguimiento();
   const [filter, setFilter] = useState<FilterType>("Todos");
+  const [search, setSearch] = useState("");
   const [detalleVisible, setDetalleVisible] = useState(false);
   const [prospectoSeleccionado, setProspectoSeleccionado] = useState<any>(null);
-
   const { width } = useWindowDimensions();
   const isMobile = width < 640;
   const isTablet = width >= 640 && width < 1024;
 
   const prospectos = data?.prospectos ?? [];
 
-  const filteredProspectos =
-    filter === "Pendientes"
-      ? prospectos.filter((x: any) =>
-          (x.estado || "").toUpperCase().includes("PENDIENTE"),
-        )
-      : filter === "Contactados"
-        ? prospectos.filter((x: any) => {
-            const estado = (x.estado || "").toUpperCase();
-            return estado.includes("CONTACT") || estado.includes("CITA");
-          })
-        : prospectos;
+  const prospectosFiltradosPorEstado =
+  filter === "En proceso"
+    ? prospectos.filter((x: any) => {
+        const estado = (x.estado || "").toUpperCase().trim();
+        return estado === "EN PROCESO";
+      })
+    : filter === "Cerrado"
+    ? prospectos.filter((x: any) => {
+        const estado = (x.estado || "").toUpperCase().trim();
+        return estado === "CERRADO";
+      })
+    : filter === "Cancelado"
+    ? prospectos.filter((x: any) => {
+        const estado = (x.estado || "").toUpperCase().trim();
+        return estado === "CANCELADO";
+      })
+    : prospectos;
+
+const filteredProspectos = prospectosFiltradosPorEstado.filter((x: any) => {
+  const texto = search.toLowerCase().trim();
+
+  if (!texto) return true;
+
+  const nombre = (
+    x.nombre ??
+    x.nombres ??
+    x.nombreCompleto ??
+    ""
+  )
+    .toString()
+    .toLowerCase();
+
+  const empresa = (
+    x.empresa ??
+    x.nombreEmpresa ??
+    ""
+  )
+    .toString()
+    .toLowerCase();
+
+  return nombre.includes(texto) || empresa.includes(texto);
+});
 const handleGuardarPaso = async (payload: {
   idProspecto: number;
   descripcionPaso: string;
@@ -52,7 +82,6 @@ const handleGuardarPaso = async (payload: {
       resultadoPaso: payload.resultadoPaso,
       fechaPaso: payload.fechaPaso,
     });
-  
 
     setProspectoSeleccionado((prev: any) => {
       if (!prev) return prev;
@@ -66,10 +95,10 @@ const handleGuardarPaso = async (payload: {
           payload.tipoActividad?.toLowerCase() === "llamada"
             ? "llamada"
             : payload.tipoActividad?.toLowerCase() === "visita"
-              ? "visita"
-              : payload.tipoActividad?.toLowerCase() === "email"
-                ? "documento"
-                : "otro",
+            ? "visita"
+            : payload.tipoActividad?.toLowerCase() === "email"
+            ? "documento"
+            : "otro",
       };
 
       return {
@@ -127,8 +156,55 @@ const handleOpenDetalle = (item: any) => {
     );
   }
 
-  return (
-    <>
+ return (
+  <>
+    <View className="flex-1 bg-surface">
+      {isMobile ? (
+        <>
+          <View className="pt-14 pb-3 px-4 border-b border-surface-variant/20">
+            <ThemedText className="text-brand-primary font-bold text-2xl">
+              Metasoft Bolivia
+            </ThemedText>
+            <ThemedText className="text-surface-dark/50 text-sm">
+              FEXCO 2026 • Event Mode
+            </ThemedText>
+          </View>
+
+          <View className="px-4 pt-3">
+            <Buscador
+              search={search}
+              setSearch={setSearch}
+              isMobile={isMobile}
+              isTablet={isTablet}
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <View className="pt-10 pb-5 px-6 border-b border-surface-variant/20">
+            <View className="flex-row justify-between items-start">
+              <View>
+                <ThemedText className="text-brand-primary font-bold text-3xl tracking-tight">
+                  Metasoft Bolivia
+                </ThemedText>
+                <ThemedText className="text-surface-dark/50 font-medium text-base">
+                  FEXCO 2026 • Event Mode
+                </ThemedText>
+              </View>
+
+              <View style={{ width: isTablet ? 300 : 340 }}>
+                <Buscador
+                  search={search}
+                  setSearch={setSearch}
+                  isMobile={false}
+                  isTablet={isTablet}
+                />
+              </View>
+            </View>
+          </View>
+        </>
+      )}
+
       <ScrollView
         className="flex-1"
         style={{ backgroundColor: "#f7f4f8" }}
@@ -184,65 +260,16 @@ const handleOpenDetalle = (item: any) => {
 
             <View
               style={{
-                width: isMobile ? "100%" : isTablet ? 280 : 300,
+                width: isMobile ? "100%" : isTablet ? 300 : 340,
                 alignSelf: isMobile ? "stretch" : "auto",
               }}
             >
-              <View
-                className="rounded-2xl p-1"
-                style={{
-                  backgroundColor: "#f0eaef",
-                  flexDirection: "row",
-                }}
-              >
-                {(["Todos", "Pendientes", "Contactados"] as FilterType[]).map(
-                  (item) => {
-                    const active = filter === item;
-
-                    return (
-                      <Pressable
-                        key={item}
-                        onPress={() => setFilter(item)}
-                        style={{
-                          flex: 1,
-                          borderRadius: 14,
-                          paddingHorizontal: isMobile ? 8 : 12,
-                          paddingVertical: 12,
-                          backgroundColor: active ? "#f8ddeb" : "transparent",
-                        }}
-                      >
-                        <ThemedText
-                          className="text-center font-bold"
-                          style={{
-                            fontSize: isMobile ? 11 : 12,
-                            color: active ? "#d10a78" : "#6f6875",
-                          }}
-                          numberOfLines={1}
-                        >
-                          {item}
-                        </ThemedText>
-                      </Pressable>
-                    );
-                  },
-                )}
-              </View>
-
-              <Pressable
-                className="mt-4 rounded-2xl"
-                style={{
-                  backgroundColor: "#ece6eb",
-                  paddingHorizontal: 18,
-                  paddingVertical: 14,
-                  alignSelf: isMobile ? "stretch" : "flex-end",
-                }}
-              >
-                <View className="flex-row items-center justify-center">
-                  <Ionicons name="options-outline" size={14} color="#5f5863" />
-                  <ThemedText className="ml-2 text-[12px] font-bold text-[#5f5863]">
-                    Filtros Avanzados
-                  </ThemedText>
-                </View>
-              </Pressable>
+              <Filtros
+                filter={filter}
+                setFilter={setFilter}
+                isMobile={isMobile}
+                isTablet={isTablet}
+              />
             </View>
           </View>
 
@@ -266,29 +293,27 @@ const handleOpenDetalle = (item: any) => {
           >
             <View style={{ flex: 1 }}>
               <MetricCard
-                title="Total Prospectos"
-                value={data?.totalProspectos ?? 0}
-                suffix="+12%"
-                variant="light"
-              />
+  title="Total Prospectos"
+  value={data?.totalProspectos ?? 0}
+  suffix={`${(data?.crecimientoDiario ?? 0) > 0 ? "+" : ""}${data?.crecimientoDiario ?? 0}%`}
+  variant="light"
+/>
             </View>
 
             <View style={{ flex: 1 }}>
               <MetricCard
-                title="Conversión"
-                value={`${data?.conversion ?? 0}%`}
-                suffix="↗↗"
-                variant="lavender"
-              />
+  title="Conversión"
+  value={`${data?.conversion ?? 0}%`}
+  variant="lavender"
+/>
             </View>
 
             <View style={{ flex: 1 }}>
-              <MetricCard
-                title="Altamente Interesados"
-                value={data?.altamenteInteresados ?? 0}
-                suffix="☆"
-                variant="magenta"
-              />
+             <MetricCard
+  title="Altamente Interesados"
+  value={data?.altamenteInteresados ?? 0}
+  variant="magenta"
+/>
             </View>
           </View>
 
@@ -358,13 +383,17 @@ const handleOpenDetalle = (item: any) => {
           </View>
         </View>
       </ScrollView>
+    </View>
 
-      <SeguimientoDetalleModal
+    <SeguimientoDetalleModal
   visible={detalleVisible}
-  onClose={() => setDetalleVisible(false)}
+  onClose={async () => {
+    setDetalleVisible(false);
+    await refetch();
+  }}
   prospecto={prospectoSeleccionado}
   onGuardarPaso={handleGuardarPaso}
 />
-    </>
-  );
+  </>
+);
 }

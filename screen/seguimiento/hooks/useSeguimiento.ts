@@ -37,5 +37,6 @@ export function useSeguimiento() {
     loading,
     error,
     refetch: fetchSeguimiento,
+    refresh: fetchSeguimiento,
   };
 }

@@ -3,12 +3,12 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import React, { useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Modal,
-    Platform,
-    Pressable,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Modal,
+  Platform,
+  Pressable,
+  TextInput,
+  View,
 } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
 

@@ -15,6 +15,7 @@ export interface SeguimientoResumen {
   totalProspectos: number;
   conversion: number;
   altamenteInteresados: number;
+  crecimientoDiario: number;
 }
 
 export interface SeguimientoResponse extends SeguimientoResumen {
