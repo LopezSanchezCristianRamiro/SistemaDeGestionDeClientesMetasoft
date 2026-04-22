@@ -24,7 +24,6 @@ import { Sistema } from "./types/sistema";
 export function CatalogoScreen() {
   const { sistemas, loading, refresh } = useSistemas();
   const { isDesktop } = useResponsive();
-
   const [selectedSistema, setSelectedSistema] = React.useState<Sistema | null>(
     null,
   );
@@ -166,7 +165,7 @@ export function CatalogoScreen() {
       </View>
 
       {/* Carrusel de cards */}
-      <View className="py-3">
+      <View>
         <View className="flex-row justify-between items-center px-4 mb-2">
           <ThemedText className="text-sm font-semibold text-surface-dark">
             Selecciona un sistema
@@ -185,8 +184,11 @@ export function CatalogoScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 12 }}
-          style={{ height: 240 }}
+          contentContainerStyle={{
+            paddingHorizontal: 12,
+            alignItems: "center",
+          }}
+          style={{ height: 152 }}
         >
           {loading && sistemas.length === 0 ? (
             <View className="w-40 h-40 items-center justify-center">
@@ -197,7 +199,7 @@ export function CatalogoScreen() {
               <TouchableOpacity
                 key={item.id}
                 onPress={() => setSelectedSistema(item)}
-                className="mr-3 rounded-xl overflow-hidden border-2"
+                className="mr-3 rounded-xl border-2"
                 style={
                   selectedSistema?.id === item.id
                     ? styles.cardSelected
@@ -207,6 +209,7 @@ export function CatalogoScreen() {
                 <SistemaCard
                   sistema={item}
                   onPress={() => setSelectedSistema(item)}
+                  size="small"
                 />
               </TouchableOpacity>
             ))
@@ -248,15 +251,6 @@ export function CatalogoScreen() {
         </TouchableOpacity>
       </View>
 
-      {/*
-       * Formulario de registro — ahora usa ProspectoForm directamente.
-       *
-       * Si no hay sistema seleccionado, ProspectoForm no se monta para
-       * evitar renders innecesarios. Se muestra un placeholder en su lugar.
-       *
-       * key={selectedSistema.id} garantiza que el formulario se resetea
-       * completamente cuando el usuario cambia de sistema seleccionado.
-       */}
       {selectedSistema ? (
         <ProspectoForm
           key={selectedSistema.id}
