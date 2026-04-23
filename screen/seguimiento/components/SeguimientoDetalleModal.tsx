@@ -179,7 +179,9 @@ export default function SeguimientoDetalleModal({
       setInteresActual("Bajo");
     }
   }, [prospecto]);
-  const isMobile = width < 640;
+  const isPhone = width < 640;
+const isTablet = width >= 640 && width < 1024;
+const isDesktop = width >= 1024;
   const [openInteres, setOpenInteres] = useState(false);
   const [openEstado, setOpenEstado] = useState(false);
   const opcionesInteres = ["Bajo", "Medio", "Alto"];
@@ -298,7 +300,7 @@ export default function SeguimientoDetalleModal({
           backgroundColor: "rgba(22, 17, 24, 0.35)",
           justifyContent: "center",
           alignItems: "center",
-          padding: isMobile ? 10 : 24,
+          padding: isPhone ? 10 : isTablet ? 16 : 24,
         }}
       >
         <View
@@ -313,16 +315,16 @@ export default function SeguimientoDetalleModal({
         >
           <ScrollView
             contentContainerStyle={{
-              paddingHorizontal: isMobile ? 16 : 22,
-              paddingTop: isMobile ? 16 : 20,
+              paddingHorizontal: isPhone ? 16 : isTablet ? 18 : 22,
+paddingTop: isPhone ? 16 : 20,
               paddingBottom: 28,
             }}
             showsVerticalScrollIndicator={false}
           >
             <View
               style={{
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "flex-start" : "center",
+                flexDirection: isPhone ? "column" : "row",
+alignItems: isPhone ? "flex-start" : "center",
                 justifyContent: "space-between",
                 gap: 12,
               }}
@@ -359,7 +361,7 @@ export default function SeguimientoDetalleModal({
                 className="rounded-2xl px-4 py-2"
                 style={{
                   backgroundColor: "#ece6eb",
-                  alignSelf: isMobile ? "flex-end" : "auto",
+                  alignSelf: isPhone ? "flex-end" : "auto",
                 }}
               >
                 <ThemedText className="text-[12px] font-bold text-[#4f4854]">
@@ -371,7 +373,7 @@ export default function SeguimientoDetalleModal({
             <View
               style={{
                 marginTop: 10,
-                flexDirection: isMobile ? "column" : "row",
+                flexDirection: isPhone ? "column" : "row",
                 justifyContent: "space-between",
                 gap: 14,
               }}
@@ -380,8 +382,8 @@ export default function SeguimientoDetalleModal({
                 <ThemedText
                   className="font-extrabold text-[#201b24]"
                   style={{
-                    fontSize: isMobile ? 28 : 36,
-                    lineHeight: isMobile ? 32 : 40,
+                    fontSize: isPhone ? 28 : isTablet ? 32 : 36,
+lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   }}
                 >
                   {nombreCompleto}
@@ -410,9 +412,9 @@ export default function SeguimientoDetalleModal({
 
               <View
                 style={{
-                  flexDirection: isMobile ? "column" : "row",
+                  flexDirection: isPhone ? "column" : "row",
                   gap: 10,
-                  width: isMobile ? "100%" : "auto",
+                  width: isPhone ? "100%" : isTablet ? 260 : "auto",
                 }}
               >
                 <Pressable
@@ -422,7 +424,7 @@ export default function SeguimientoDetalleModal({
                   style={{
                     backgroundColor: "#ece9ee",
                     opacity: prospecto?.correo ? 1 : 0.6,
-                    minWidth: isMobile ? undefined : 140,
+                    minWidth: isPhone ? undefined : 140,
                     flex: 1,
                   }}
                 >
@@ -444,7 +446,7 @@ export default function SeguimientoDetalleModal({
                   style={{
                     backgroundColor: "#ece9ee",
                     opacity: prospecto?.telefono ? 1 : 0.6,
-                    minWidth: isMobile ? undefined : 140,
+                    minWidth: isPhone ? undefined : 140,
                     flex: 1,
                   }}
                 >
@@ -461,16 +463,21 @@ export default function SeguimientoDetalleModal({
               </View>
             </View>
 
-            <View
-              style={{
-                marginTop: 24,
-                flexDirection: isMobile ? "column" : "row",
-                gap: 16,
-              }}
-            >
+          <View
+  style={{
+    marginTop: 24,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    justifyContent: "space-between",
+  }}
+>
               <View
                 className="rounded-[26px] p-5"
-                style={{ flex: 1, backgroundColor: "#efebef" }}
+              style={{
+  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+  backgroundColor: "#efebef",
+}}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Interés actual
@@ -519,7 +526,10 @@ export default function SeguimientoDetalleModal({
               </View>
               <View
                 className="rounded-[26px] p-5"
-                style={{ flex: 1, backgroundColor: "#efebef" }}
+               style={{
+  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+  backgroundColor: "#efebef",
+}}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Estado actual
@@ -609,7 +619,10 @@ export default function SeguimientoDetalleModal({
 
               <View
                 className="rounded-[26px] p-5"
-                style={{ flex: 1, backgroundColor: "#efebef" }}
+               style={{
+  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+  backgroundColor: "#efebef",
+}}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Fecha de inicio
@@ -710,7 +723,7 @@ export default function SeguimientoDetalleModal({
                         >
                           <View
                             style={{
-                              flexDirection: isMobile ? "column" : "row",
+                              flexDirection: isPhone ? "column" : "row",
                               justifyContent: "space-between",
                               gap: 10,
                             }}
