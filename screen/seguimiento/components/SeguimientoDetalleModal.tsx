@@ -1,5 +1,6 @@
+import { Toaster } from "@/components/Toaster";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -8,11 +9,13 @@ import {
   Pressable,
   ScrollView,
   View,
-  useWindowDimensions
+  useWindowDimensions,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { ThemedText } from "../../../components/ThemedText";
 import { httpClient } from "../../../http/httpClient";
 import { getUsuarioData } from "../../../storage/storage";
+import { RegistrarAdelantoModal } from "./RegistrarAdelantoModal";
 import RegistrarPasoModal from "./RegistrarPasoModal";
 type Paso = {
   id?: number;
@@ -44,7 +47,7 @@ type ProspectoDetalle = {
   proximoPaso?: string;
 
   historialPasos?: Paso[];
-  rubro?: string;
+   rubro?: string;
 };
 
 type Props = {
@@ -58,7 +61,7 @@ type Props = {
     resultadoPaso: string;
     fechaPaso: string;
   }) => Promise<void>;
-
+  onRefresh?: () => Promise<any>; // Nueva prop
 };
 
 function getNombreCompleto(prospecto: ProspectoDetalle | null) {
@@ -91,14 +94,14 @@ export default function SeguimientoDetalleModal({
   onGuardarPaso,
 }: Props) {
   const { width, height } = useWindowDimensions();
+  const [anticipoLocal, setAnticipoLocal] = useState<number>(0);
 
   const [showPasoModal, setShowPasoModal] = useState(false);
   const [estadoSeguimiento, setEstadoSeguimiento] = useState("Pendiente");
-const [savingEstado, setSavingEstado] = useState(false);
-const [interesActual, setInteresActual] = useState("Bajo");
-const [savingInteres, setSavingInteres] = useState(false);
-
-const [nombreUsuario, setNombreUsuario] = useState("el equipo");
+  const [savingEstado, setSavingEstado] = useState(false);
+  const [interesActual, setInteresActual] = useState("Bajo");
+  const [savingInteres, setSavingInteres] = useState(false);
+  const [nombreUsuario, setNombreUsuario] = useState("el equipo");
 
 useEffect(() => {
   getUsuarioData().then((data) => {
@@ -128,94 +131,114 @@ const handleOpenWhatsApp = async () => {
     Alert.alert("Error", "No se pudo abrir WhatsApp.");
   }
 };
-const handleActualizarInteres = async (nuevoInteres: string) => {
-  try {
-    const idProspecto = prospecto?.idProspecto || prospecto?.id;
+  const [showAdelantoModal, setShowAdelantoModal] = useState(false);
+  const handleRegistrarAdelantoEfectivo = useCallback(
+    async (monto: number) => {
+      if (!prospecto?.id) throw new Error("Prospecto no definido");
 
-    if (!idProspecto) {
-      Alert.alert("Error", "No existe prospecto.");
-      return;
+      await httpClient.postAuth(
+        `/api/seguimiento/${prospecto.id}/adelanto`,
+        { monto, metodo: "efectivo" },
+        "Error al registrar adelanto en efectivo",
+      );
+    },
+    [prospecto],
+  );
+  useEffect(() => {
+    if (prospecto) {
+      setAnticipoLocal(Number(prospecto.anticipo) || 0);
     }
+  }, [prospecto]);
+  // Callback cuando se registra exitosamente (refrescar datos)
+  const handleAdelantoRegistrado = useCallback((monto: number) => {
+    Toast.show({
+      type: "success",
+      text1: "Adelanto registrado",
+      text2: "El adelanto en efectivo ha sido guardado.",
+    });
+    setAnticipoLocal(monto);
+  }, []);
 
-    if (nuevoInteres === interesActual) {
+  const handleActualizarInteres = async (nuevoInteres: string) => {
+    try {
+      const idProspecto = prospecto?.idProspecto || prospecto?.id;
+
+      if (!idProspecto) {
+        Alert.alert("Error", "No existe prospecto.");
+        return;
+      }
+
+      if (nuevoInteres === interesActual) {
+        setOpenInteres(false);
+        return;
+      }
+
       setOpenInteres(false);
-      return;
+      setSavingInteres(true);
+
+      const data: any = await httpClient.putAuth(
+        `/api/seguimiento/${idProspecto}/interes`,
+        {
+          estadoInteres: nuevoInteres,
+        },
+        "No se pudo actualizar el interés",
+      );
+
+      setInteresActual(nuevoInteres);
+
+      Alert.alert(
+        "Correcto",
+        data?.message || `Interés actualizado a ${nuevoInteres}`,
+      );
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        error?.message || "No se pudo actualizar el interés",
+      );
+    } finally {
+      setSavingInteres(false);
     }
-
-    setOpenInteres(false);
-    setSavingInteres(true);
-
-    const data: any = await httpClient.putAuth(
-      `/api/seguimiento/${idProspecto}/interes`,
-      {
-        estadoInteres: nuevoInteres,
-      },
-      "No se pudo actualizar el interés"
-    );
-
-    setInteresActual(nuevoInteres);
-
-    Alert.alert(
-      "Correcto",
-      data?.message || `Interés actualizado a ${nuevoInteres}`
-    );
-  } catch (error: any) {
-    Alert.alert(
-      "Error",
-      error?.message || "No se pudo actualizar el interés"
-    );
-  } finally {
-    setSavingInteres(false);
-  }
-};
+  };
   useEffect(() => {
     if (prospecto?.estado) {
       setEstadoSeguimiento(prospecto.estado);
     }
   }, [prospecto]);
-useEffect(() => {
-  if (prospecto?.interes) {
-    setInteresActual(String(prospecto.interes));
-  } else {
-    setInteresActual("Bajo");
-  }
-}, [prospecto]);
-  const isMobile = width < 640;
-const [openInteres, setOpenInteres] = useState(false);
-const [openEstado, setOpenEstado] = useState(false);
-const opcionesInteres = ["Bajo", "Medio", "Alto"];
-const opcionesEstado = ["En proceso", "Cerrado", "Cancelado"];
+  useEffect(() => {
+    if (prospecto?.interes) {
+      setInteresActual(String(prospecto.interes));
+    } else {
+      setInteresActual("Bajo");
+    }
+  }, [prospecto]);
+  const isPhone = width < 640;
+const isTablet = width >= 640 && width < 1024;
+const isDesktop = width >= 1024;
+  const [openInteres, setOpenInteres] = useState(false);
+  const [openEstado, setOpenEstado] = useState(false);
+  const opcionesInteres = ["Bajo", "Medio", "Alto"];
+  const opcionesEstado = ["En proceso", "Cerrado", "Cancelado"];
   const nombreCompleto = getNombreCompleto(prospecto) || "Sin nombre";
   const empresa = prospecto?.empresa || "Sin empresa";
- const interes = interesActual || prospecto?.interes || "Bajo";
+  const interes = interesActual || prospecto?.interes || "Bajo";
 
   // CAMBIO
-  const estado =
-    estadoSeguimiento || prospecto?.estado || "Pendiente";
+  const estado = estadoSeguimiento || prospecto?.estado || "Pendiente";
 
   const anticipo = prospecto?.anticipo ?? 0;
 
   const correo =
-    prospecto?.correo ??
-    (prospecto as any)?.correoElectronico ??
-    "";
+    prospecto?.correo ?? (prospecto as any)?.correoElectronico ?? "";
 
-  const telefono =
-    prospecto?.telefono ??
-    (prospecto as any)?.celular ??
-    "";
+  const telefono = prospecto?.telefono ?? (prospecto as any)?.celular ?? "";
 
   // CAMBIO
   const fechaInicio =
-    prospecto?.fechaInicioSeguimiento ||
-    prospecto?.fechaInicio ||
-    "Sin fecha";
+    prospecto?.fechaInicioSeguimiento || prospecto?.fechaInicio || "Sin fecha";
 
-  const proximoPaso =
-    prospecto?.proximoPaso || "Sin próximo paso";
+  const proximoPaso = prospecto?.proximoPaso || "Sin próximo paso";
 
-  const historialPasos =
-    prospecto?.historialPasos || [];
+  const historialPasos = prospecto?.historialPasos || [];
 
   const handleOpenMail = async () => {
     if (!correo) return;
@@ -238,76 +261,78 @@ const opcionesEstado = ["En proceso", "Cerrado", "Cancelado"];
       await Linking.openURL(url);
     }
   };
-const getSiguienteEstado = () => {
-  const actual = (estadoSeguimiento || "").toUpperCase();
+  const getSiguienteEstado = () => {
+    const actual = (estadoSeguimiento || "").toUpperCase();
 
-  if (actual === "EN PROCESO") return "Cerrado";
-  if (actual === "CERRADO") return "Cancelado";
-  if (actual === "CANCELADO") return "En proceso";
+    if (actual === "EN PROCESO") return "Cerrado";
+    if (actual === "CERRADO") return "Cancelado";
+    if (actual === "CANCELADO") return "En proceso";
 
-  return "En proceso";
-};
- const getSiguienteInteres = () => {
-  const actual = (interesActual || "").toUpperCase();
+    return "En proceso";
+  };
+  const getSiguienteInteres = () => {
+    const actual = (interesActual || "").toUpperCase();
 
-  if (actual === "BAJO") return "Medio";
-  if (actual === "MEDIO") return "Alto";
-  if (actual === "ALTO") return "Bajo";
+    if (actual === "BAJO") return "Medio";
+    if (actual === "MEDIO") return "Alto";
+    if (actual === "ALTO") return "Bajo";
 
-  return "Bajo";
-};
-const handleActualizarEstado = async (nuevoEstado: string) => {
-  try {
-    if (!prospecto?.idSeguimiento) {
-      Alert.alert("Error", "No existe seguimiento.");
-      return;
-    }
+    return "Bajo";
+  };
+  const handleActualizarEstado = async (nuevoEstado: string) => {
+    try {
+      if (!prospecto?.idSeguimiento) {
+        Alert.alert("Error", "No existe seguimiento.");
+        return;
+      }
 
-    if (nuevoEstado === estadoSeguimiento) {
+      if (nuevoEstado === estadoSeguimiento) {
+        setOpenEstado(false);
+        return;
+      }
+
       setOpenEstado(false);
-      return;
+      setSavingEstado(true);
+
+      const data: any = await httpClient.putAuth(
+        `/api/seguimiento/${prospecto.idSeguimiento}/estado`,
+        {
+          estadoSeguimiento: nuevoEstado,
+        },
+        "No se pudo actualizar",
+      );
+
+      setEstadoSeguimiento(nuevoEstado);
+
+      Alert.alert(
+        "Correcto",
+        data?.message || `Estado actualizado a ${nuevoEstado}`,
+      );
+    } catch (error: any) {
+      Alert.alert("Error", error?.message || "No se pudo actualizar");
+    } finally {
+      setSavingEstado(false);
     }
-
-    setOpenEstado(false);
-    setSavingEstado(true);
-
-    const data: any = await httpClient.putAuth(
-      `/api/seguimiento/${prospecto.idSeguimiento}/estado`,
-      {
-        estadoSeguimiento: nuevoEstado,
-      },
-      "No se pudo actualizar"
-    );
-
-    setEstadoSeguimiento(nuevoEstado);
-
-    Alert.alert(
-      "Correcto",
-      data?.message || `Estado actualizado a ${nuevoEstado}`
-    );
-  } catch (error: any) {
-    Alert.alert(
-      "Error",
-      error?.message || "No se pudo actualizar"
-    );
-  } finally {
-    setSavingEstado(false);
-  }
-};
+  };
 
   const handleCerrarSeguimiento = () => {
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <View
         className="flex-1"
         style={{
           backgroundColor: "rgba(22, 17, 24, 0.35)",
           justifyContent: "center",
           alignItems: "center",
-          padding: isMobile ? 10 : 24,
+          padding: isPhone ? 10 : isTablet ? 16 : 24,
         }}
       >
         <View
@@ -322,16 +347,16 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
         >
           <ScrollView
             contentContainerStyle={{
-              paddingHorizontal: isMobile ? 16 : 22,
-              paddingTop: isMobile ? 16 : 20,
+              paddingHorizontal: isPhone ? 16 : isTablet ? 18 : 22,
+paddingTop: isPhone ? 16 : 20,
               paddingBottom: 28,
             }}
             showsVerticalScrollIndicator={false}
           >
             <View
               style={{
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "flex-start" : "center",
+                flexDirection: isPhone ? "column" : "row",
+alignItems: isPhone ? "flex-start" : "center",
                 justifyContent: "space-between",
                 gap: 12,
               }}
@@ -353,9 +378,14 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                   </ThemedText>
                 </View>
 
-                <ThemedText className="text-[12px] font-bold text-[#d10a78]">
-                  Adelanto: {anticipo} bs.
-                </ThemedText>
+                <Pressable
+                  onPress={() => setShowAdelantoModal(true)}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                >
+                  <ThemedText className="text-[12px] font-bold text-[#d10a78] underline">
+                    Adelanto: {anticipoLocal} bs.
+                  </ThemedText>
+                </Pressable>
               </View>
 
               <Pressable
@@ -363,7 +393,7 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                 className="rounded-2xl px-4 py-2"
                 style={{
                   backgroundColor: "#ece6eb",
-                  alignSelf: isMobile ? "flex-end" : "auto",
+                  alignSelf: isPhone ? "flex-end" : "auto",
                 }}
               >
                 <ThemedText className="text-[12px] font-bold text-[#4f4854]">
@@ -375,7 +405,7 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
             <View
               style={{
                 marginTop: 10,
-                flexDirection: isMobile ? "column" : "row",
+                flexDirection: isPhone ? "column" : "row",
                 justifyContent: "space-between",
                 gap: 14,
               }}
@@ -384,8 +414,8 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                 <ThemedText
                   className="font-extrabold text-[#201b24]"
                   style={{
-                    fontSize: isMobile ? 28 : 36,
-                    lineHeight: isMobile ? 32 : 40,
+                    fontSize: isPhone ? 28 : isTablet ? 32 : 36,
+lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   }}
                 >
                   {nombreCompleto}
@@ -403,7 +433,9 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                   <ThemedText className="text-[16px] text-[#6f6875]">
                     {empresa}
                   </ThemedText>
-                  <ThemedText className="text-[16px] text-[#b9b0ba]">/</ThemedText>
+                  <ThemedText className="text-[16px] text-[#b9b0ba]">
+                    /
+                  </ThemedText>
                   <ThemedText className="text-[16px] font-bold text-[#4c57c7]">
                     Interes: {interes}
                   </ThemedText>
@@ -412,9 +444,9 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
 
               <View
                 style={{
-                  flexDirection: isMobile ? "column" : "row",
+                  flexDirection: isPhone ? "column" : "row",
                   gap: 10,
-                  width: isMobile ? "100%" : "auto",
+                  width: isPhone ? "100%" : isTablet ? 260 : "auto",
                 }}
               >
                 <Pressable
@@ -424,7 +456,7 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                   style={{
                     backgroundColor: "#ece9ee",
                     opacity: prospecto?.correo ? 1 : 0.6,
-                    minWidth: isMobile ? undefined : 140,
+                    minWidth: isPhone ? undefined : 140,
                     flex: 1,
                   }}
                 >
@@ -440,13 +472,13 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                 </Pressable>
 
                 <Pressable
-                  onPress={handleOpenWhatsApp}
+                   onPress={handleOpenWhatsApp}
                   disabled={!telefono}
                   className="rounded-2xl px-5 py-4"
                   style={{
                     backgroundColor: "#e7f8ee",
                     opacity: telefono ? 1 : 0.6,
-                    minWidth: isMobile ? undefined : 140,
+                    minWidth: isPhone ? undefined : 140,
                     flex: 1,
                   }}
                 >
@@ -460,117 +492,125 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                     className="mt-1 text-center text-[13px] font-bold text-[#25D366]"
                     numberOfLines={1}
                   >
-                    {telefono || "—"}
+                    {telefono}
                   </ThemedText>
                 </Pressable>
               </View>
             </View>
 
-            <View
+          <View
+  style={{
+    marginTop: 24,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    justifyContent: "space-between",
+  }}
+>
+              <View
+                className="rounded-[26px] p-5"
               style={{
-                marginTop: 24,
-                flexDirection: isMobile ? "column" : "row",
-                gap: 16,
-              }}
-            >
- <View
-  className="rounded-[26px] p-5"
-  style={{ flex: 1, backgroundColor: "#efebef" }}
->
-  <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
-    Interés actual
-  </ThemedText>
+  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+  backgroundColor: "#efebef",
+}}
+              >
+                <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
+                  Interés actual
+                </ThemedText>
 
-  <Pressable
-    onPress={() => !savingInteres && setOpenInteres(true)}
-    style={{
-      marginTop: 18,
-      backgroundColor: "#f7f4f8",
-      borderRadius: 22,
-      paddingVertical: 18,
-      paddingHorizontal: 18,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      position: "relative",
-    }}
-  >
-    <ThemedText
-      className="font-bold text-center"
-      style={{
-        fontSize: 16,
-        color: "#4f4755",
-      }}
-    >
-      {savingInteres ? "Guardando..." : interes}
-    </ThemedText>
+                <Pressable
+                  onPress={() => !savingInteres && setOpenInteres(true)}
+                  style={{
+                    marginTop: 18,
+                    backgroundColor: "#f7f4f8",
+                    borderRadius: 22,
+                    paddingVertical: 18,
+                    paddingHorizontal: 18,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                  }}
+                >
+                  <ThemedText
+                    className="font-bold text-center"
+                    style={{
+                      fontSize: 16,
+                      color: "#4f4755",
+                    }}
+                  >
+                    {savingInteres ? "Guardando..." : interes}
+                  </ThemedText>
 
-    <View
-      style={{
-        position: "absolute",
-        right: 18,
-        top: 0,
-        bottom: 0,
-        justifyContent: "center",
-      }}
-    >
-      <Ionicons name="chevron-down" size={24} color="#6f6875" />
-    </View>
-  </Pressable>
+                  <View
+                    style={{
+                      position: "absolute",
+                      right: 18,
+                      top: 0,
+                      bottom: 0,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="chevron-down" size={24} color="#6f6875" />
+                  </View>
+                </Pressable>
 
-  <ThemedText className="mt-3 text-[12px] text-[#6f6875]">
-    Siguiente interés: {getSiguienteInteres()}
-  </ThemedText>
-</View>
-<View
-  className="rounded-[26px] p-5"
-  style={{ flex: 1, backgroundColor: "#efebef" }}
->
-  <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
-    Estado actual
-  </ThemedText>
+                <ThemedText className="mt-3 text-[12px] text-[#6f6875]">
+                  Siguiente interés: {getSiguienteInteres()}
+                </ThemedText>
+              </View>
+              <View
+                className="rounded-[26px] p-5"
+               style={{
+  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+  backgroundColor: "#efebef",
+}}
+              >
+                <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
+                  Estado actual
+                </ThemedText>
 
-  <Pressable
-    onPress={() => !savingEstado && setOpenEstado(true)}
-    style={{
-      marginTop: 18,
-      backgroundColor: "#f7f4f8",
-      borderRadius: 22,
-      paddingVertical: 18,
-      paddingHorizontal: 18,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      position: "relative",
-    }}
-  >
-    <ThemedText
-      className="font-bold text-center"
-      style={{
-        fontSize: 16,
-        color: "#4f4755",
-      }}
-    >
-      {savingEstado ? "Guardando..." : estado}
-    </ThemedText>
+                <Pressable
+                  onPress={() => !savingEstado && setOpenEstado(true)}
+                  style={{
+                    marginTop: 18,
+                    backgroundColor: "#f7f4f8",
+                    borderRadius: 22,
+                    paddingVertical: 18,
+                    paddingHorizontal: 18,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                  }}
+                >
+                  <ThemedText
+                    className="font-bold text-center"
+                    style={{
+                      fontSize: 16,
+                      color: "#4f4755",
+                    }}
+                  >
+                    {savingEstado ? "Guardando..." : estado}
+                  </ThemedText>
 
-    <View
-      style={{
-        position: "absolute",
-        right: 18,
-        top: 0,
-        bottom: 0,
-        justifyContent: "center",
-      }}
-    >
-      <Ionicons name="chevron-down" size={24} color="#6f6875" />
-    </View>
-  </Pressable>
+                  <View
+                    style={{
+                      position: "absolute",
+                      right: 18,
+                      top: 0,
+                      bottom: 0,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="chevron-down" size={24} color="#6f6875" />
+                  </View>
+                </Pressable>
 
-  <ThemedText className="mt-3 text-[12px] text-[#6f6875]">
-    Siguiente estado: {getSiguienteEstado()}
-  </ThemedText>
-</View>
+                <ThemedText className="mt-3 text-[12px] text-[#6f6875]">
+                  Siguiente estado: {getSiguienteEstado()}
+                </ThemedText>
+              </View>
 
               <View
                 className="rounded-[26px] p-5"
@@ -614,7 +654,10 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
 
               <View
                 className="rounded-[26px] p-5"
-                style={{ flex: 1, backgroundColor: "#efebef" }}
+               style={{
+  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+  backgroundColor: "#efebef",
+}}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Fecha de inicio
@@ -686,7 +729,11 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                               alignItems: "center",
                             }}
                           >
-                            <Ionicons name={icon.name as any} size={16} color="#fff" />
+                            <Ionicons
+                              name={icon.name as any}
+                              size={16}
+                              color="#fff"
+                            />
                           </View>
 
                           {index !== historialPasos.length - 1 && (
@@ -711,7 +758,7 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                         >
                           <View
                             style={{
-                              flexDirection: isMobile ? "column" : "row",
+                              flexDirection: isPhone ? "column" : "row",
                               justifyContent: "space-between",
                               gap: 10,
                             }}
@@ -776,37 +823,37 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
               </Pressable>
             </View>
           </ScrollView>
-                {(savingEstado || savingInteres) && (
-  <View
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(22, 17, 24, 0.18)",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 50,
-    }}
-  >
-    <View
-      style={{
-        backgroundColor: "#ffffff",
-        borderRadius: 24,
-        paddingHorizontal: 28,
-        paddingVertical: 24,
-        alignItems: "center",
-        minWidth: 180,
-      }}
-    >
-      <ActivityIndicator size="large" color="#8d8ff3" />
-      <ThemedText className="mt-4 text-[14px] font-bold text-[#4f4755]">
-        Guardando cambios...
-      </ThemedText>
-    </View>
-  </View>
-)}
+          {(savingEstado || savingInteres) && (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(22, 17, 24, 0.18)",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 50,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "#ffffff",
+                  borderRadius: 24,
+                  paddingHorizontal: 28,
+                  paddingVertical: 24,
+                  alignItems: "center",
+                  minWidth: 180,
+                }}
+              >
+                <ActivityIndicator size="large" color="#8d8ff3" />
+                <ThemedText className="mt-4 text-[14px] font-bold text-[#4f4755]">
+                  Guardando cambios...
+                </ThemedText>
+              </View>
+            </View>
+          )}
           <View
             style={{
               position: "absolute",
@@ -843,7 +890,14 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
               <Ionicons name="add" size={26} color="#fff" />
             </Pressable>
           </View>
-
+          <RegistrarAdelantoModal
+            visible={showAdelantoModal}
+            onClose={() => setShowAdelantoModal(false)}
+            prospectoId={prospecto?.id ?? 0}
+            nombreCliente={prospecto?.nombre ?? "Sistema"}
+            onAdelantoRegistrado={handleAdelantoRegistrado}
+            onRegistrarEfectivo={handleRegistrarAdelantoEfectivo}
+          />
           <RegistrarPasoModal
             visible={showPasoModal}
             onClose={() => setShowPasoModal(false)}
@@ -855,121 +909,123 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                 descripcionPaso: proximoPaso,
                 resultadoPaso: resultado,
                 fechaPaso: fechaHora || new Date().toISOString(),
-              });     
+              });
               setShowPasoModal(false);
             }}
           />
           <Modal
-  visible={openInteres}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setOpenInteres(false)}
->
-  <Pressable
-    onPress={() => setOpenInteres(false)}
-    style={{
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.25)",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: 20,
-    }}
-  >
-    <View
-      style={{
-        width: "100%",
-        maxWidth: 340,
-        backgroundColor: "#ffffff",
-        borderRadius: 24,
-        padding: 14,
-      }}
-    >
-      {opcionesInteres.map((item) => {
-        const active = item === interesActual;
-
-        return (
-          <Pressable
-            key={item}
-            onPress={() => handleActualizarInteres(item)}
-            style={{
-              paddingVertical: 16,
-              borderRadius: 18,
-              marginBottom: 8,
-              backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
-            }}
+            visible={openInteres}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setOpenInteres(false)}
           >
-            <ThemedText
-              className="text-center font-bold"
+            <Pressable
+              onPress={() => setOpenInteres(false)}
               style={{
-                fontSize: 15,
-                color: active ? "#d10a78" : "#5f5863",
+                flex: 1,
+                backgroundColor: "rgba(0,0,0,0.25)",
+                justifyContent: "center",
+                alignItems: "center",
+                paddingHorizontal: 20,
               }}
             >
-              {item}
-            </ThemedText>
-          </Pressable>
-        );
-      })}
-    </View>
-  </Pressable>
-</Modal>
+              <View
+                style={{
+                  width: "100%",
+                  maxWidth: 340,
+                  backgroundColor: "#ffffff",
+                  borderRadius: 24,
+                  padding: 14,
+                }}
+              >
+                {opcionesInteres.map((item) => {
+                  const active = item === interesActual;
 
-<Modal
-  visible={openEstado}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setOpenEstado(false)}
->
-  <Pressable
-    onPress={() => setOpenEstado(false)}
-    style={{
-      flex: 1,
-      backgroundColor: "rgba(0,0,0,0.25)",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: 20,
-    }}
-  >
-    <View
-      style={{
-        width: "100%",
-        maxWidth: 340,
-        backgroundColor: "#ffffff",
-        borderRadius: 24,
-        padding: 14,
-      }}
-    >
-      {opcionesEstado.map((item) => {
-        const active = item === estadoSeguimiento;
+                  return (
+                    <Pressable
+                      key={item}
+                      onPress={() => handleActualizarInteres(item)}
+                      style={{
+                        paddingVertical: 16,
+                        borderRadius: 18,
+                        marginBottom: 8,
+                        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
+                      }}
+                    >
+                      <ThemedText
+                        className="text-center font-bold"
+                        style={{
+                          fontSize: 15,
+                          color: active ? "#d10a78" : "#5f5863",
+                        }}
+                      >
+                        {item}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Pressable>
+          </Modal>
 
-        return (
-          <Pressable
-            key={item}
-            onPress={() => handleActualizarEstado(item)}
-            style={{
-              paddingVertical: 16,
-              borderRadius: 18,
-              marginBottom: 8,
-              backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
-            }}
+          <Modal
+            visible={openEstado}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setOpenEstado(false)}
           >
-            <ThemedText
-              className="text-center font-bold"
+            <Pressable
+              onPress={() => setOpenEstado(false)}
               style={{
-                fontSize: 15,
-                color: active ? "#d10a78" : "#5f5863",
+                flex: 1,
+                backgroundColor: "rgba(0,0,0,0.25)",
+                justifyContent: "center",
+                alignItems: "center",
+                paddingHorizontal: 20,
               }}
             >
-              {item}
-            </ThemedText>
-          </Pressable>
-        );
-      })}
-    </View>
-  </Pressable>
-</Modal>
+              <View
+                style={{
+                  width: "100%",
+                  maxWidth: 340,
+                  backgroundColor: "#ffffff",
+                  borderRadius: 24,
+                  padding: 14,
+                }}
+              >
+                {opcionesEstado.map((item) => {
+                  const active = item === estadoSeguimiento;
+
+                  return (
+                    <Pressable
+                      key={item}
+                      onPress={() => handleActualizarEstado(item)}
+                      style={{
+                        paddingVertical: 16,
+                        borderRadius: 18,
+                        marginBottom: 8,
+                        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
+                      }}
+                    >
+                      <ThemedText
+                        className="text-center font-bold"
+                        style={{
+                          fontSize: 15,
+                          color: active ? "#d10a78" : "#5f5863",
+                        }}
+                      >
+                        {item}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Pressable>
+          </Modal>
         </View>
-      </View>               
+
+        <Toaster />
+      </View>
     </Modal>
   );
 }

@@ -72,11 +72,11 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
             {usuario?.nombres.charAt(0).toUpperCase() ?? "?"}
           </ThemedText>
         </View>
-        <View className="ml-4">
-          <ThemedText className="text-lg font-bold text-gray-900">
+          <View className="ml-4 flex-1 flex-shrink">
+          <ThemedText className="text-lg font-bold text-gray-900" numberOfLines={2}>
             {usuario ? `${usuario.nombres} ${usuario.apellido ?? ""}`.trim() : "—"}
           </ThemedText>
-          <ThemedText className="text-sm text-gray-500 font-medium">
+            <ThemedText className="text-sm text-gray-500 font-medium" numberOfLines={1}>
             {usuario?.rol ?? "—"}
           </ThemedText>
         </View>
