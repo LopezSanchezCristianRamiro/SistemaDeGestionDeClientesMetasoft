@@ -7,6 +7,7 @@ import { CustomDrawerContent } from "../../components/CustomDrawerContent";
 import { ThemedText } from "../../components/ThemedText";
 import { useResponsive } from "../../hooks/useResponsive";
 import { getToken } from "../../storage/storage";
+
 const TAB_ITEMS = [
   { label: "Catálogo", route: "/catalogo", icon: "grid-outline" } as const,
   {
@@ -31,47 +32,28 @@ export default function DrawerGroupLayout() {
   const pathname = usePathname();
   const { isDesktop } = useResponsive();
   const insets = useSafeAreaInsets();
+
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    getToken().then((token) => {
-      if (!token) {
-        router.replace("/(auth)/login");
-      } else {
-        setAuthenticated(true);
-      }
-      setChecking(false);
-    });
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const token = await getToken();
 
-    if (checking) {
-      return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#E1007E" />
-        </View>
-      );
-    }
-    if (!authenticated) return null;
-  useEffect(() => {
-    getToken().then((token) => {
-      if (!token) {
-        router.replace("/(auth)/login");
-      } else {
-        setAuthenticated(true);
+        if (!token) {
+          setAuthenticated(false);
+          router.replace("/(auth)/login");
+        } else {
+          setAuthenticated(true);
+        }
+      } finally {
+        setChecking(false);
       }
-      setChecking(false);
-    });
-  }, []);
+    };
 
-    if (checking) {
-      return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#E1007E" />
-        </View>
-      );
-    }
-    if (!authenticated) return null;
+    checkAuth();
+  }, [router]);
 
   const BottomTabs = () => {
     const activeRoute = TAB_ITEMS.find(
@@ -87,6 +69,7 @@ export default function DrawerGroupLayout() {
         <View className="flex-row justify-around items-end h-16">
           {TAB_ITEMS.map((item) => {
             const isActive = activeRoute?.route === item.route;
+
             return (
               <Pressable
                 key={item.route}
@@ -108,6 +91,7 @@ export default function DrawerGroupLayout() {
                 >
                   {item.label}
                 </ThemedText>
+
                 {isActive && (
                   <View className="absolute -top-0.5 left-0 right-0 h-0.5 bg-brand-primary rounded-full" />
                 )}
@@ -119,10 +103,19 @@ export default function DrawerGroupLayout() {
     );
   };
 
+  if (checking) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#E1007E" />
+      </View>
+    );
+  }
+
+  if (!authenticated) return null;
+
   if (isDesktop) {
     return (
       <View style={{ flex: 1, flexDirection: "row" }}>
-        {/* Sidebar fijo */}
         <View
           style={{
             width: 240,
@@ -133,7 +126,6 @@ export default function DrawerGroupLayout() {
           <CustomDrawerContent {...STUB_DRAWER_PROPS} />
         </View>
 
-        {/* Contenido principal */}
         <View style={{ flex: 1 }}>
           <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
             <Stack.Screen name="catalogo" />
