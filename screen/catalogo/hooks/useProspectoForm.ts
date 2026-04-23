@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Toast from "react-native-toast-message";
 import { httpClient } from "../../../http/httpClient";
 import { ProspectoDTO } from "../types/prospecto";
 
@@ -14,7 +15,13 @@ export const useProspectoForm = () => {
         "Error al registrar el prospecto en el sistema",
       );
       return { success: true, response };
-    } catch (error) {
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error al registrar",
+        text2: "No se pudo registrar el prospecto. Verifique su conexión.",
+        visibilityTime: 4000,
+      });
       return { success: false, error };
     } finally {
       setLoading(false);

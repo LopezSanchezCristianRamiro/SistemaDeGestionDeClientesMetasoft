@@ -26,7 +26,7 @@ interface QrPagoModalProps {
   monto: number;
   sistemaNombre: string;
   onClose: () => void;
-  onPagoConfirmado: () => void;
+  onPagoConfirmado: () => Promise<void>;
 }
 
 const TEXTO_ESTADO = {
@@ -204,7 +204,6 @@ export function QrPagoModal({
               Bs. {monto.toLocaleString()}
             </ThemedText>
 
-            {/* Área del QR */}
             <QrImageArea
               estadoQr={estadoQr}
               qrBase64={qrData?.qrImage ?? null}

@@ -1,16 +1,12 @@
 /**
  * @file useQrPago.ts
- * @description Hook que encapsula el ciclo de vida de un pago por QR:
- *              1. Generar el QR llamando a la API externa.
- *              2. Exponer función de verificación manual.
- *              3. Notificar al componente padre cuando el pago es confirmado.
+ * @description Hook que encapsula el ciclo de vida de un pago por QR.
  *
- * Cambios realizados:
- *  - Eliminado el polling automático con setInterval.
- *  - Se expone `verificarPago` como función pública.
- *  - Se añade estado `isVerifying` para feedback durante verificación manual.
+ * FIX: onPagoConfirmado ahora es tipado como () => Promise<void> y se
+ *      awaita correctamente en verificarPago, garantizando que el registro
+ *      del prospecto se complete antes de cualquier otra acción.
+ *      Se corrige además el stale closure sobre estadoQr usando una ref.
  */
-
 import { useCallback, useRef, useState } from "react";
 
 const API_BASE = process.env.EXPO_PUBLIC_QR_API_BASE;
@@ -39,7 +35,9 @@ interface UseQrPagoReturn {
   resetQr: () => void;
 }
 
-export function useQrPago(onPagoConfirmado: () => void): UseQrPagoReturn {
+export function useQrPago(
+  onPagoConfirmado: () => Promise<void>,
+): UseQrPagoReturn {
   const [estadoQr, setEstadoQr] = useState<EstadoQr>("idle");
   const [qrData, setQrData] = useState<QrGeneradoData | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -47,9 +45,13 @@ export function useQrPago(onPagoConfirmado: () => void): UseQrPagoReturn {
 
   const montadoRef = useRef(true);
   const qrIdRef = useRef<string | null>(null);
+  const estadoQrRef = useRef<EstadoQr>("idle");
 
   const setEstadoSeguro = useCallback((estado: EstadoQr) => {
-    if (montadoRef.current) setEstadoQr(estado);
+    if (montadoRef.current) {
+      estadoQrRef.current = estado;
+      setEstadoQr(estado);
+    }
   }, []);
 
   const generarQr = useCallback(
@@ -100,7 +102,9 @@ export function useQrPago(onPagoConfirmado: () => void): UseQrPagoReturn {
 
   const verificarPago = useCallback(async () => {
     const qrId = qrIdRef.current;
-    if (!qrId || estadoQr === "confirmado" || estadoQr === "error") {
+    const estadoActual = estadoQrRef.current;
+
+    if (!qrId || estadoActual === "confirmado" || estadoActual === "error") {
       return;
     }
 
@@ -123,7 +127,7 @@ export function useQrPago(onPagoConfirmado: () => void): UseQrPagoReturn {
 
       if (pagoRealizado) {
         setEstadoSeguro("confirmado");
-        onPagoConfirmado();
+        await onPagoConfirmado();
       } else {
         setEstadoSeguro("esperando");
       }
@@ -132,7 +136,7 @@ export function useQrPago(onPagoConfirmado: () => void): UseQrPagoReturn {
     } finally {
       if (montadoRef.current) setIsVerifying(false);
     }
-  }, [estadoQr, onPagoConfirmado, setEstadoSeguro]);
+  }, [onPagoConfirmado, setEstadoSeguro]);
 
   const resetQr = useCallback(() => {
     setQrData(null);
