@@ -112,23 +112,37 @@ useEffect(() => {
 }, []);
 
 const handleOpenWhatsApp = async () => {
-  if (!telefono) return;
+  if (!telefono) {
+    Alert.alert("Error", "El prospecto no tiene teléfono.");
+    return;
+  }
 
-  const numero = telefono.replace(/\D/g, ""); 
-  const numberCountry = numero.startsWith("591") ? numero : `591${numero}`
-  // const mensaje = encodeURIComponent(
-  //   `Hola ${nombreCompleto} 😊 Soy ${nombreUsuario} de Metasoft, quería saber si sigue interesado en nuestro sistema. ¡Estamos para ayudarle!`
-  // );
+  const numero = telefono.replace(/\D/g, "");
+
+  if (!numero || numero.length < 8) {
+    Alert.alert("Error", "El número de teléfono no es válido.");
+    return;
+  }
+
+  const numberCountry = numero.startsWith("591") ? numero : `591${numero}`;
+
   const mensaje = encodeURIComponent(
-    `¡Hola ${nombreCompleto}! 😄 Soy ${nombreUsuario} de Metasoft. Solo quería escribirle para ver si sigue interesado en nuestro sistema de ${(prospecto as any)?.rubro || "gestión"}. ¡Estamos para ayudarle!`
+    `¡Hola ${nombreCompleto}! 😄 Soy ${nombreUsuario} de Metasoft. Solo quería escribirle para ver si sigue interesado en nuestro sistema de ${
+      prospecto?.rubro || "gestión"
+    }. ¡Estamos para ayudarle!`
   );
-  const url = `https://wa.me/${numberCountry}?text=${mensaje}`;
 
-  const supported = await Linking.canOpenURL(url);
-  if (supported) {
-    await Linking.openURL(url);
-  } else {
-    Alert.alert("Error", "No se pudo abrir WhatsApp.");
+  const appUrl = `whatsapp://send?phone=${numberCountry}&text=${mensaje}`;
+  const webUrl = `https://api.whatsapp.com/send?phone=${numberCountry}&text=${mensaje}`;
+
+  try {
+    await Linking.openURL(appUrl);
+  } catch {
+    try {
+      await Linking.openURL(webUrl);
+    } catch {
+      Alert.alert("Error", "No se pudo abrir WhatsApp.");
+    }
   }
 };
   const [showAdelantoModal, setShowAdelantoModal] = useState(false);

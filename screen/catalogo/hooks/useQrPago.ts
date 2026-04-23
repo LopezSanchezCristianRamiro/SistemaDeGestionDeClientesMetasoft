@@ -9,7 +9,7 @@
  */
 import { useCallback, useRef, useState } from "react";
 
-const API_BASE = process.env.EXPO_PUBLIC_QR_API_BASE;
+const API_BASE = process.env.EXPO_PUBLIC_QR_API_BASE?.trim() || "https://sistemapagoqr.grupo-lobos.com/api/economico";
 
 export type EstadoQr =
   | "idle"
