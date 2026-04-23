@@ -28,11 +28,11 @@ export function useSistemas() {
     } catch (err: any) {
       if (sistemas.length === 0) {
         setError(err.message || "Error al cargar el catálogo");
-        Toast.show({
-          type: "info",
-          text1: "Modo Offline",
-          text2: "No se pudo sincronizar con el servidor.",
-        });
+       Toast.show({
+        type: "info",
+        text1: "Sin Conexión",
+        text2: "Se ha perdido la conexión con el servidor.",
+      });
       }
     } finally {
       setLoading(false);

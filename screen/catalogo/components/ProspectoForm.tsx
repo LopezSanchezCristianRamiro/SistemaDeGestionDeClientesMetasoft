@@ -78,14 +78,29 @@ export const ProspectoForm = memo(
     const [qrModalVisible, setQrModalVisible] = useState(false);
     const montoInputRef = useRef<TextInput>(null);
     const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
-
+    const [emailError, setEmailError] = useState<string | null>(null);
+    const isValidEmail = (email: string): boolean => {
+      if (!email.trim()) return true; // vacío es válido porque no es obligatorio
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
     useEffect(() => {
       getUsuarioId().then((id) => id && setUserId(parseInt(id, 10)));
     }, []);
+    useEffect(() => {
+      if (form.correo.trim() && !isValidEmail(form.correo)) {
+        setEmailError("Formato de correo inválido");
+      } else {
+        setEmailError(null);
+      }
+    }, [form.correo]);
 
     const isFormValid = useMemo(() => {
       if (!form.nombres.trim() || !form.celular.trim()) return false;
-      if (form.tieneAdelanto && form.metodoPago === "qr") {
+      if (form.correo.trim() && !isValidEmail(form.correo)) {
+        return false;
+      }
+      if (form.tieneAdelanto) {
         const monto = parseFloat(form.montoAdelanto);
         if (isNaN(monto) || monto <= 0) return false;
       }
@@ -113,8 +128,16 @@ export const ProspectoForm = memo(
 
     const handleRegister = useCallback(async () => {
       if (!validarCamposRequeridos()) return;
+      if (form.correo.trim() && !isValidEmail(form.correo)) {
+        Toast.show({
+          type: "error",
+          text1: "Correo inválido",
+          text2: "Ingrese un correo electrónico válido",
+        });
+        return;
+      }
 
-      if (form.tieneAdelanto && form.metodoPago === "qr") {
+      if (form.tieneAdelanto) {
         const monto = parseFloat(form.montoAdelanto);
         if (isNaN(monto) || monto <= 0) {
           Toast.show({
@@ -124,8 +147,10 @@ export const ProspectoForm = memo(
           });
           return;
         }
-        setQrModalVisible(true);
-        return;
+        if (form.metodoPago === "qr") {
+          setQrModalVisible(true);
+          return;
+        }
       }
       await enviarRegistro();
     }, [form, userId, sistema.id]);
@@ -229,6 +254,7 @@ export const ProspectoForm = memo(
                   onChangeText={(text) => updateForm({ correo: text })}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  error={emailError}
                 />
               </View>
             </View>
@@ -277,7 +303,7 @@ export const ProspectoForm = memo(
             </View>
 
             {form.tieneAdelanto && (
-              <View className="bg-white rounded-xl border border-surface-variant/20 p-4 mb-6">
+              <View className="bg-white rounded-xl border border-white  p-4 mb-6">
                 <InputField
                   ref={montoInputRef}
                   label="Monto Recibido (Bs.)"
@@ -418,12 +444,13 @@ interface InputFieldProps extends React.ComponentProps<typeof TextInput> {
   required?: boolean;
   value: string;
   onChangeText: (text: string) => void;
+  error?: string | null;
 }
 
 const InputField = forwardRef<TextInput, InputFieldProps>(
-  ({ label, required, value, onChangeText, ...props }, ref) => (
+  ({ label, required, value, onChangeText, error, ...props }, ref) => (
     <View className="mb-5">
-      <View className="flex-row mb-2 ml-1">
+      <View className="flex-row mb-2 ml-1 min-h-5">
         <ThemedText className="text-[10px] font-black uppercase text-surface-dark/40 tracking-widest">
           {label}
         </ThemedText>
@@ -433,12 +460,19 @@ const InputField = forwardRef<TextInput, InputFieldProps>(
       </View>
       <TextInput
         ref={ref}
-        className="bg-surface-variant/10 p-4 rounded-xl border border-surface-variant/20 text-surface-dark text-base font-medium"
+        className={`bg-surface-variant/10 p-4 rounded-xl border text-surface-dark text-base font-medium ${
+          error ? "border-status-error" : "border-surface-variant/20"
+        }`}
         placeholderTextColor="#A1A1AA"
         value={value}
         onChangeText={onChangeText}
         {...props}
       />
+      {error && (
+        <ThemedText className="text-status-error text-xs mt-1 ml-1">
+          {error}
+        </ThemedText>
+      )}
     </View>
   ),
 );
