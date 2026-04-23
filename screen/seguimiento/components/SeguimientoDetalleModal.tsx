@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
 import { httpClient } from "../../../http/httpClient";
+import { getUsuarioData } from "../../../storage/storage";
 import RegistrarPasoModal from "./RegistrarPasoModal";
 type Paso = {
   id?: number;
@@ -43,6 +44,7 @@ type ProspectoDetalle = {
   proximoPaso?: string;
 
   historialPasos?: Paso[];
+  rubro?: string;
 };
 
 type Props = {
@@ -95,6 +97,37 @@ export default function SeguimientoDetalleModal({
 const [savingEstado, setSavingEstado] = useState(false);
 const [interesActual, setInteresActual] = useState("Bajo");
 const [savingInteres, setSavingInteres] = useState(false);
+
+const [nombreUsuario, setNombreUsuario] = useState("el equipo");
+
+useEffect(() => {
+  getUsuarioData().then((data) => {
+    if (data) {
+      setNombreUsuario(`${data.nombres} ${data.apellido}`.trim());
+    }
+  });
+}, []);
+
+const handleOpenWhatsApp = async () => {
+  if (!telefono) return;
+
+  const numero = telefono.replace(/\D/g, ""); 
+  const numberCountry = numero.startsWith("591") ? numero : `591${numero}`
+  // const mensaje = encodeURIComponent(
+  //   `Hola ${nombreCompleto} 😊 Soy ${nombreUsuario} de Metasoft, quería saber si sigue interesado en nuestro sistema. ¡Estamos para ayudarle!`
+  // );
+  const mensaje = encodeURIComponent(
+    `¡Hola ${nombreCompleto}! 😄 Soy ${nombreUsuario} de Metasoft. Solo quería escribirle para ver si sigue interesado en nuestro sistema de ${(prospecto as any)?.rubro || "gestión"}. ¡Estamos para ayudarle!`
+  );
+  const url = `https://wa.me/${numberCountry}?text=${mensaje}`;
+
+  const supported = await Linking.canOpenURL(url);
+  if (supported) {
+    await Linking.openURL(url);
+  } else {
+    Alert.alert("Error", "No se pudo abrir WhatsApp.");
+  }
+};
 const handleActualizarInteres = async (nuevoInteres: string) => {
   try {
     const idProspecto = prospecto?.idProspecto || prospecto?.id;
@@ -407,24 +440,27 @@ const handleActualizarEstado = async (nuevoEstado: string) => {
                 </Pressable>
 
                 <Pressable
-                  onPress={handleOpenPhone}
-                  disabled={!prospecto?.telefono}
+                  onPress={handleOpenWhatsApp}
+                  disabled={!telefono}
                   className="rounded-2xl px-5 py-4"
                   style={{
-                    backgroundColor: "#ece9ee",
-                    opacity: prospecto?.telefono ? 1 : 0.6,
+                    backgroundColor: "#e7f8ee",
+                    opacity: telefono ? 1 : 0.6,
                     minWidth: isMobile ? undefined : 140,
                     flex: 1,
                   }}
                 >
                   <ThemedText className="text-center text-[11px] font-bold uppercase text-[#8f8795]">
-                    Teléfono
+                    WhatsApp
                   </ThemedText>
+                  <View style={{ alignItems: "center", marginTop: 6 }}>
+                    <Ionicons name="logo-whatsapp" size={26} color="#25D366" />
+                  </View>
                   <ThemedText
-                    className="mt-1 text-center text-[13px] font-bold text-[#4c57c7]"
-                    numberOfLines={2}
+                    className="mt-1 text-center text-[13px] font-bold text-[#25D366]"
+                    numberOfLines={1}
                   >
-                    {telefono}
+                    {telefono || "—"}
                   </ThemedText>
                 </Pressable>
               </View>

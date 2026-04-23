@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Href, Stack, usePathname, useRouter } from "expo-router";
-import { Pressable, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomDrawerContent } from "../../components/CustomDrawerContent";
 import { ThemedText } from "../../components/ThemedText";
 import { useResponsive } from "../../hooks/useResponsive";
+import { getToken } from "../../storage/storage";
 
 const TAB_ITEMS = [
   { label: "Catálogo", route: "/catalogo", icon: "grid-outline" } as const,
@@ -30,6 +32,29 @@ export default function DrawerGroupLayout() {
   const pathname = usePathname();
   const { isDesktop } = useResponsive();
   const insets = useSafeAreaInsets();
+
+  const [checking, setChecking] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    getToken().then((token) => {
+      if (!token) {
+        router.replace("/(auth)/login");
+      } else {
+        setAuthenticated(true);
+      }
+      setChecking(false);
+    });
+  }, []);
+
+    if (checking) {
+      return (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#E1007E" />
+        </View>
+      );
+    }
+    if (!authenticated) return null;
 
   const BottomTabs = () => {
     const activeRoute = TAB_ITEMS.find(
