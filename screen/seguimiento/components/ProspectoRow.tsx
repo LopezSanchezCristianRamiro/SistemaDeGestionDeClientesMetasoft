@@ -1,25 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, View, useWindowDimensions } from "react-native";
+import { Pressable, View } from "react-native";
 import { ThemedText } from "../../../components/ThemedText";
-
-type ProspectoItem = {
-  id: number;
-  nombre?: string;
-  apellidos?: string;
-  empresa?: string;
-  interes?: string;
-  estado?: string;
-  anticipo?: number | string;
-  siguientePaso?: string;
-  proximoPaso?: string;
-  rubro?: string;
-  sistemaRequerido?: string;
-  softwareRequerido?: string;
-};
 
 type Props = {
   item: any;
-  onPressDetalle?: (item: any) => void;
+  onPressDetalle: (item: any) => void;
+  isMobile?: boolean;
+  isTablet?: boolean;
 };
 
 function getInitials(nombreCompleto: string) {
@@ -91,10 +78,12 @@ function InfoBlock({
   );
 }
 
-export default function ProspectoRow({ item, onPressDetalle }: Props) {
-  const { width } = useWindowDimensions();
-  const isMobile = width < 640;
-
+export default function ProspectoRow({
+  item,
+  onPressDetalle,
+  isMobile = false,
+  isTablet = false,
+}: Props) {
   const nombreCompleto = `${item.nombre || ""} ${item.apellidos || ""}`.trim();
   const nombreMostrar = nombreCompleto || "Sin nombre";
   const empresaMostrar = item.empresa || "Sin empresa";
@@ -105,10 +94,13 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
     item.softwareRequerido ||
     item.rubro ||
     "Sin sistema";
+
   const anticipoMostrar =
-    item.anticipo !== undefined && item.anticipo !== null && item.anticipo !== ""
-      ? `$${item.anticipo}`
-      : "$0";
+    item.anticipo !== undefined &&
+    item.anticipo !== null &&
+    item.anticipo !== ""
+      ? `Bs ${item.anticipo}`
+      : "Bs 0";
 
   const initials = getInitials(nombreMostrar || empresaMostrar) || "PR";
   const estadoUI = getEstadoColors(item.estado);
@@ -205,6 +197,143 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
     );
   }
 
+  if (isTablet) {
+    return (
+      <View
+        className="mb-4 rounded-[22px] px-5 py-4"
+        style={{
+          backgroundColor: "#ffffff",
+          borderWidth: 1,
+          borderColor: "#ece5eb",
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <View style={{ flexDirection: "row", flex: 1 }}>
+            <View
+              className="items-center justify-center rounded-full"
+              style={{
+                width: 48,
+                height: 48,
+                backgroundColor: "#f1ebf0",
+              }}
+            >
+              <ThemedText className="text-[16px] font-extrabold text-[#cf1781]">
+                {initials}
+              </ThemedText>
+            </View>
+
+            <View className="ml-3 flex-1 pr-2">
+              <ThemedText
+                className="text-[24px] font-extrabold text-[#201b24]"
+                numberOfLines={2}
+              >
+                {nombreMostrar}
+              </ThemedText>
+
+              <ThemedText
+                className="mt-1 text-[15px] text-[#7b7480]"
+                numberOfLines={1}
+              >
+                {empresaMostrar}
+              </ThemedText>
+
+              <ThemedText
+                className="mt-1 text-[14px] font-semibold text-[#4c57c7]"
+                numberOfLines={1}
+              >
+                Sistema: {sistemaMostrar}
+              </ThemedText>
+            </View>
+          </View>
+
+          <Pressable
+            onPress={() => onPressDetalle?.(item)}
+            className="rounded-2xl px-4 py-3"
+            style={{
+              borderWidth: 1,
+              borderColor: "#d9cfd8",
+              backgroundColor: "#faf7fa",
+              minWidth: 120,
+            }}
+          >
+            <ThemedText className="text-center text-[13px] font-bold text-[#2d2732]">
+              Ver detalles
+            </ThemedText>
+          </Pressable>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
+          <View
+            className="rounded-full px-4 py-2"
+            style={{ backgroundColor: "#f6eff7" }}
+          >
+            <ThemedText className="font-bold text-[#c5177a]">
+              {interesMostrar}
+            </ThemedText>
+          </View>
+
+          <View
+            className="rounded-full px-4 py-2 flex-row items-center"
+            style={{ backgroundColor: estadoUI.bg }}
+          >
+            <View
+              className="mr-2 rounded-full"
+              style={{
+                width: 7,
+                height: 7,
+                backgroundColor: estadoUI.dot,
+              }}
+            />
+            <ThemedText
+              className="font-bold"
+              style={{ color: estadoUI.text }}
+            >
+              {estadoUI.label}
+            </ThemedText>
+          </View>
+
+          <View
+            className="rounded-full px-4 py-2"
+            style={{ backgroundColor: "#fff6e7" }}
+          >
+            <ThemedText className="font-bold text-[#7b4e00]">
+              {anticipoMostrar}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View
+          className="rounded-2xl px-4 py-3 mt-4"
+          style={{ backgroundColor: "#faf7fa" }}
+        >
+          <ThemedText className="text-[11px] font-bold uppercase tracking-[0.8px] text-[#a19aa5]">
+            Próximo paso
+          </ThemedText>
+          <ThemedText
+            className="mt-1 text-[15px] font-medium text-[#2d2732]"
+            numberOfLines={2}
+          >
+            {pasoMostrar}
+          </ThemedText>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View
       className="mb-4 flex-row items-center rounded-[22px] px-4 py-5"
@@ -291,10 +420,7 @@ export default function ProspectoRow({ item, onPressDetalle }: Props) {
       </View>
 
       <View style={{ width: "18%" }} className="pr-3">
-        <ThemedText
-          className="text-[13px] text-[#4b4550]"
-          numberOfLines={2}
-        >
+        <ThemedText className="text-[13px] text-[#4b4550]" numberOfLines={2}>
           {pasoMostrar}
         </ThemedText>
       </View>

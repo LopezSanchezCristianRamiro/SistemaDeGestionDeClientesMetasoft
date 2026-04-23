@@ -23,7 +23,7 @@ export default function SeguimientoScreen() {
   const { width } = useWindowDimensions();
   const isMobile = width < 640;
   const isTablet = width >= 640 && width < 1024;
-
+const isSearching = search.trim().length > 0;
   const prospectos = data?.prospectos ?? [];
 
   const prospectosFiltradosPorEstado =
@@ -209,41 +209,64 @@ export default function SeguimientoScreen() {
               alignSelf: "center",
             }}
           >
-            <View
-              className={isMobile ? "gap-4" : "gap-6"}
-              style={{
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "stretch" : "flex-start",
-                justifyContent: "space-between",
-              }}
-            >
+          <View
+  className={isMobile ? "gap-4" : "gap-6"}
+  style={{
+    flexDirection: isMobile ? "column" : "row",
+    alignItems: isMobile ? "stretch" : "flex-start",
+    justifyContent: "space-between",
+    marginBottom: isSearching ? 6 : 0,
+  }}
+>
               <View
                 style={{
                   flex: 1,
                   maxWidth: isMobile ? "100%" : 520,
                 }}
               >
-                <ThemedText
-                  className="font-extrabold text-[#201b24]"
-                  style={{
-                    fontSize: isMobile ? 34 : isTablet ? 46 : 58,
-                    lineHeight: isMobile ? 38 : isTablet ? 48 : 58,
-                  }}
-                >
-                  Historial de{"\n"}Seguimiento
-                </ThemedText>
+              <ThemedText
+  className="font-extrabold text-[#201b24]"
+  style={{
+    fontSize: isSearching
+      ? isMobile
+        ? 28
+        : isTablet
+          ? 34
+          : 42
+      : isMobile
+        ? 34
+        : isTablet
+          ? 40
+          : 58,
+    lineHeight: isSearching
+      ? isMobile
+        ? 32
+        : isTablet
+          ? 38
+          : 44
+      : isMobile
+        ? 38
+        : isTablet
+          ? 42
+          : 58,
+  }}
+>
+  Historial de{"\n"}Seguimiento
+</ThemedText>
 
-                <ThemedText
-                  className="text-[#726b77]"
-                  style={{
-                    marginTop: 16,
-                    fontSize: isMobile ? 14 : 15,
-                    lineHeight: isMobile ? 22 : 28,
-                  }}
-                >
-                  Gestiona los prospectos capturados y supervisa el embudo
-                  comercial desde una sola vista.
-                </ThemedText>
+               {!isSearching && (
+  <ThemedText
+    className="text-[#726b77]"
+    style={{
+      marginTop: 16,
+      fontSize: isMobile ? 14 : 15,
+      lineHeight: isMobile ? 22 : 28,
+    }}
+  >
+    Gestiona los prospectos capturados y supervisa el embudo
+    comercial desde una sola vista.
+  </ThemedText>
+)}
               </View>
 
               <View
@@ -272,42 +295,44 @@ export default function SeguimientoScreen() {
               </View>
             )}
 
-            <View
-              className="mt-8"
-              style={{
-                flexDirection: isMobile ? "column" : "row",
-                gap: 16,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <MetricCard
-                  title="Total Prospectos"
-                  value={data?.totalProspectos ?? 0}
-                  suffix={`${(data?.crecimientoDiario ?? 0) > 0 ? "+" : ""}${data?.crecimientoDiario ?? 0}%`}
-                  variant="light"
-                />
-              </View>
+           {!isSearching && (
+  <View
+    className="mt-8"
+    style={{
+      flexDirection: isMobile ? "column" : "row",
+      gap: 16,
+    }}
+  >
+    <View style={{ flex: 1 }}>
+      <MetricCard
+        title="Total Prospectos"
+        value={data?.totalProspectos ?? 0}
+        suffix={`${(data?.crecimientoDiario ?? 0) > 0 ? "+" : ""}${data?.crecimientoDiario ?? 0}%`}
+        variant="light"
+      />
+    </View>
 
-              <View style={{ flex: 1 }}>
-                <MetricCard
-                  title="Conversión"
-                  value={`${data?.conversion ?? 0}%`}
-                  variant="lavender"
-                />
-              </View>
+    <View style={{ flex: 1 }}>
+      <MetricCard
+        title="Conversión"
+        value={`${data?.conversion ?? 0}%`}
+        variant="lavender"
+      />
+    </View>
 
-              <View style={{ flex: 1 }}>
-                <MetricCard
-                  title="Altamente Interesados"
-                  value={data?.altamenteInteresados ?? 0}
-                  variant="magenta"
-                />
-              </View>
-            </View>
+    <View style={{ flex: 1 }}>
+      <MetricCard
+        title="Altamente Interesados"
+        value={data?.altamenteInteresados ?? 0}
+        variant="magenta"
+      />
+    </View>
+  </View>
+)}
 
-            <View className="mt-10">
-              {!isMobile && (
-                <View className="mb-4 flex-row items-center px-4">
+            <View className={isSearching ? "mt-5" : "mt-10"}>
+              {!isMobile && !isTablet && (
+  <View className="mb-4 flex-row items-center px-4">
                   <View style={{ width: "33%" }}>
                     <ThemedText className="text-[10px] font-bold uppercase tracking-[1.1px] text-[#aaa2ac]">
                       Prospecto & Empresa
@@ -360,13 +385,15 @@ export default function SeguimientoScreen() {
                   </ThemedText>
                 </View>
               ) : (
-                filteredProspectos.map((item: any) => (
-                  <ProspectoRow
-                    key={item.id}
-                    item={item}
-                    onPressDetalle={handleOpenDetalle}
-                  />
-                ))
+               filteredProspectos.map((item: any) => (
+  <ProspectoRow
+    key={item.id}
+    item={item}
+    onPressDetalle={handleOpenDetalle}
+    isMobile={isMobile}
+    isTablet={isTablet}
+  />
+))
               )}
             </View>
           </View>
