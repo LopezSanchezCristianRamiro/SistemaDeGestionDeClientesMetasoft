@@ -1,15 +1,14 @@
-
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    Text,
-    TextInput,
-    View
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
@@ -50,8 +49,12 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (!idRol) { 
-      Toast.show({ type: "error", text1: "Selecciona un rol", text2: "Elige Azafata o Colaborador." });
+    if (!idRol) {
+      Toast.show({
+        type: "error",
+        text1: "Selecciona un rol",
+        text2: "Elige Azafata o Colaborador.",
+      });
       return;
     }
 
@@ -70,7 +73,7 @@ export default function RegisterScreen() {
       nombreUsuario: nombreUsuario.trim(),
       contrasenia,
       contrasenia_confirmation: contraseniaConfirmation,
-      idRol: 2,
+      idRol: idRol,
     });
 
     if (!result.success) {
@@ -96,16 +99,15 @@ export default function RegisterScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-        <KeyboardAwareScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
-            keyboardShouldPersistTaps="handled"
-            enableOnAndroid={true}
-            extraScrollHeight={20}
-            className="bg-surface"
-        >
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        className="bg-surface"
+      >
         <View className="flex-1 justify-center items-center px-6 py-10">
           <View className="w-full max-w-[440px]">
-
             {/* Header */}
             <View className="mb-8 w-full">
               <View className="self-start rounded-2xl bg-brand-primary px-4 py-2 mb-4">
@@ -123,7 +125,6 @@ export default function RegisterScreen() {
 
             {/* Card */}
             <View className="w-full rounded-3xl bg-white p-5 shadow-card">
-
               {/* Nombre completo */}
               <View className="mb-4">
                 <Text className="mb-2 text-sm font-semibold text-surface-dark">
@@ -172,37 +173,41 @@ export default function RegisterScreen() {
                 />
               </View>
               {/* Selector de Rol ← NUEVO */}
-                <View className="mb-4">
-                <Text className="mb-2 text-sm font-semibold text-surface-dark">Rol</Text>
+              <View className="mb-4">
+                <Text className="mb-2 text-sm font-semibold text-surface-dark">
+                  Rol
+                </Text>
                 <View style={{ flexDirection: "row", gap: 12 }}>
-                    {ROLES.map((rol) => (
+                  {ROLES.map((rol) => (
                     <Pressable
-                        key={rol.value}
-                        onPress={() => setIdRol(rol.value)}
-                        style={{
+                      key={rol.value}
+                      onPress={() => setIdRol(rol.value)}
+                      style={{
                         flex: 1,
                         alignItems: "center",
                         justifyContent: "center",
                         borderRadius: 16,
                         borderWidth: 1.5,
                         paddingVertical: 16,
-                        borderColor: idRol === rol.value ? "#6366f1" : "#e5e7eb",
-                        backgroundColor: idRol === rol.value ? "#6366f1" : "#ffffff",
-                        }}
+                        borderColor:
+                          idRol === rol.value ? "#6366f1" : "#e5e7eb",
+                        backgroundColor:
+                          idRol === rol.value ? "#6366f1" : "#ffffff",
+                      }}
                     >
-                        <Text
+                      <Text
                         style={{
-                            fontSize: 14,
-                            fontWeight: "600",
-                            color: idRol === rol.value ? "#ffffff" : "#111827",
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: idRol === rol.value ? "#ffffff" : "#111827",
                         }}
-                        >
+                      >
                         {rol.label}
-                        </Text>
+                      </Text>
                     </Pressable>
-                    ))}
+                  ))}
                 </View>
-                </View>
+              </View>
 
               {/* Contraseña */}
               <View className="mb-4">
@@ -297,7 +302,6 @@ export default function RegisterScreen() {
                   </Text>
                 </Pressable>
               </View>
-
             </View>
           </View>
         </View>
