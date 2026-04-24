@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import React, { useMemo, useState } from "react";
+
 import {
   ActivityIndicator,
   Modal,
@@ -57,7 +58,9 @@ export default function RegistrarPasoModal({
   const [resultado, setResultado] = useState("");
   const [proximoPaso, setProximoPaso] = useState("");
   const [saving, setSaving] = useState(false);
-
+const formularioValido =
+  resultado.trim().length > 0 &&
+  proximoPaso.trim().length > 0;
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -81,7 +84,7 @@ export default function RegistrarPasoModal({
   };
 
   const handleGuardar = async () => {
-    if (!resultado.trim()) return;
+    if (!formularioValido) return;
 
     try {
       setSaving(true);
@@ -222,47 +225,67 @@ export default function RegistrarPasoModal({
             />
           )}
 
-          <View className="mt-4">
-            <ThemedText className="mb-2 text-[11px] font-bold uppercase text-[#8d8590]">
-              Resultado / Notas
-            </ThemedText>
-
-            <TextInput
-              value={resultado}
-              onChangeText={setResultado}
-              placeholder="¿Qué ocurrió en esta interacción?"
-              placeholderTextColor="#d4a7b8"
-              multiline
-              textAlignVertical="top"
-              className="rounded-2xl px-4 py-4 text-[15px] text-[#2d2732]"
-              style={{
-                backgroundColor: "#efebef",
-                borderWidth: 1,
-                borderColor: "#e3dce3",
-                minHeight: 110,
-              }}
-            />
-          </View>
+          
 
           <View className="mt-4">
-            <ThemedText className="mb-2 text-[11px] font-bold uppercase text-[#8d8590]">
-              Próximo paso definido
-            </ThemedText>
+  <ThemedText className="mb-2 text-[11px] font-bold uppercase text-[#8d8590]">
+    Resultado / Notas
+  </ThemedText>
 
-            <TextInput
-              value={proximoPaso}
-              onChangeText={setProximoPaso}
-              placeholder="Ej: Enviar cotización técnica"
-              placeholderTextColor="#d4a7b8"
-              className="rounded-2xl px-4 text-[15px] text-[#2d2732]"
-              style={{
-                backgroundColor: "#efebef",
-                borderWidth: 1,
-                borderColor: "#e3dce3",
-                height: 52,
-              }}
-            />
-          </View>
+  <TextInput
+    value={resultado}
+    onChangeText={setResultado}
+    placeholder="¿Qué ocurrió en esta interacción?"
+    placeholderTextColor="#d4a7b8"
+    multiline
+    textAlignVertical="top"
+    className="rounded-2xl px-4 py-4 text-[15px] text-[#2d2732]"
+    style={{
+      backgroundColor: "#efebef",
+      borderWidth: 1,
+      borderColor: "#e3dce3",
+      minHeight: 110,
+    }}
+  />
+
+  {resultado.trim().length === 0 && (
+    <ThemedText
+      className="mt-2 text-[12px] font-medium"
+      style={{ color: "#e53935" }}
+    >
+      Debe completar este campo.
+    </ThemedText>
+  )}
+</View>
+
+<View className="mt-4">
+  <ThemedText className="mb-2 text-[11px] font-bold uppercase text-[#8d8590]">
+    Próximo paso definido
+  </ThemedText>
+
+  <TextInput
+    value={proximoPaso}
+    onChangeText={setProximoPaso}
+    placeholder="Ej: Enviar cotización técnica"
+    placeholderTextColor="#d4a7b8"
+    className="rounded-2xl px-4 text-[15px] text-[#2d2732]"
+    style={{
+      backgroundColor: "#efebef",
+      borderWidth: 1,
+      borderColor: "#e3dce3",
+      height: 52,
+    }}
+  />
+
+  {proximoPaso.trim().length === 0 && (
+    <ThemedText
+      className="mt-2 text-[12px] font-medium"
+      style={{ color: "#e53935" }}
+    >
+      Debe completar este campo.
+    </ThemedText>
+  )}
+</View>
 
           <View className="mt-6 flex-row gap-3">
             <Pressable
@@ -275,16 +298,16 @@ export default function RegistrarPasoModal({
               </ThemedText>
             </Pressable>
 
-            <Pressable
-              onPress={handleGuardar}
-              disabled={saving}
-              className="flex-1 items-center justify-center rounded-2xl"
-              style={{
-                backgroundColor: "#ea0088",
-                height: 52,
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
+<Pressable
+  onPress={handleGuardar}
+  disabled={saving || !formularioValido}
+  className="flex-1 items-center justify-center rounded-2xl"
+  style={{
+    backgroundColor: formularioValido ? "#ea0088" : "#cfc7cf",
+    height: 52,
+    opacity: saving ? 0.7 : 1,
+  }}
+>
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
