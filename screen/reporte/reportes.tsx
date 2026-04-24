@@ -1,5 +1,6 @@
 // screen/reporte/reportesScreen.tsx
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useReportes } from "./hooks/useReporte";
 
@@ -25,6 +26,7 @@ const ESTADO_COLORS: Record<string, string> = {
   Perdido: "#EF4444",
 };
 
+
 const INTERES_COLORS: Record<string, string> = {
   Alto: "#E1007E",
   Medio: "#7C3AED",
@@ -36,6 +38,7 @@ const AVATAR_COLORS = ["#E1007E", "#7C3AED", "#0EA5E9", "#10B981", "#F59E0B"];
 export default function ReportesScreen() {
   const { metrics, interesProspectos, sistemasMasSolicitados, seguimientos, rankingProductividad, loading, error, refetch } =
     useReportes();
+  const [mostrarTodosSeguimientos, setMostrarTodosSeguimientos] = useState(false);
 
   const maxLeads = sistemasMasSolicitados?.[0]?.leads ?? 1;
 
@@ -203,7 +206,7 @@ export default function ReportesScreen() {
                   <Text style={{ width: 100, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>ESTADO</Text>
                 </View>
 
-                {seguimientos?.slice(0, 5).map((s: any, i: number) => (
+                {(mostrarTodosSeguimientos ? seguimientos : seguimientos?.slice(0, 5))?.map((s: any, i: number) => (
                   <View
                     key={s.id}
                     style={{
@@ -231,7 +234,7 @@ export default function ReportesScreen() {
 
                     {/* Sistema */}
                     <View style={{ width: 120 }}>
-                      <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start" }}>
+                      <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start", maxWidth: 115, }}>
                         <Text style={{ fontSize: 10, color: "#7C3AED", fontWeight: "600" }} numberOfLines={1}>{s.sistemaRequerido}</Text>
                       </View>
                     </View>
@@ -265,6 +268,33 @@ export default function ReportesScreen() {
 
               </View>
             </ScrollView>
+
+            {/* ── BOTÓN VER MÁS / VER MENOS ── */}
+            {seguimientos?.length > 5 && (
+              <TouchableOpacity
+                onPress={() => setMostrarTodosSeguimientos(!mostrarTodosSeguimientos)}
+                style={{
+                  marginTop: 12,
+                  paddingVertical: 10,
+                  borderTopWidth: 1,
+                  borderTopColor: "#F3F4F6",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 6,
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: "600", color: "#7C3AED" }}>
+                  {mostrarTodosSeguimientos
+                    ? "Ver menos"
+                    : `Ver más detalles (${seguimientos.length - 5} más)`}
+                </Text>
+                <Text style={{ fontSize: 13, color: "#7C3AED" }}>
+                  {mostrarTodosSeguimientos ? "▲" : "▼"}
+                </Text>
+              </TouchableOpacity>
+            )}
+
           </View>
 
           {/* ── INTERÉS + SISTEMAS (lado a lado) ── */}
