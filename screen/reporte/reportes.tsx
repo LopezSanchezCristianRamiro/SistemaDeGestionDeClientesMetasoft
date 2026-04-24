@@ -334,6 +334,7 @@ export default function ReportesScreen() {
                     style={[
                       styles.rankingCard,
                       i === 0 && { borderColor: "#E1007E", borderWidth: 2 },
+                      { overflow: "hidden" },
                     ]}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -355,8 +356,8 @@ export default function ReportesScreen() {
                           </Text>
                         )}
                       </View>
-                      <View>
-                        <Text style={{ fontSize: 13, fontWeight: "700", color: "#1E0A3C" }}>{item.nombre}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text numberOfLines={1}  style={{ fontSize: 13, fontWeight: "700", color: "#1E0A3C" }}>{item.nombre}</Text>
                         <Text style={{ fontSize: 10, fontWeight: "600", color: i === 0 ? "#E1007E" : "#7C3AED" }}>
                           {i === 0 ? "IMPULSADORA SENIOR" : i === 1 ? "AZAFATA DE MARCA" : "IMPULSADORA"}
                         </Text>
