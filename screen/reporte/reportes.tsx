@@ -294,7 +294,8 @@ export default function ReportesScreen() {
               {sistemasMasSolicitados?.slice(0, 4).map((s: any) => (
                 <View key={s.nombre} style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-                    <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500" }} numberOfLines={1}>
+                    <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500", flex: 1, marginRight: 8 }} numberOfLines={1} 
+  ellipsizeMode="tail">
                       {s.nombre}
                     </Text>
                     <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "700" }}>{s.leads} Leads</Text>
@@ -359,7 +360,7 @@ export default function ReportesScreen() {
                       <View style={{ flex: 1 }}>
                         <Text numberOfLines={1}  style={{ fontSize: 13, fontWeight: "700", color: "#1E0A3C" }}>{item.nombre}</Text>
                         <Text style={{ fontSize: 10, fontWeight: "600", color: i === 0 ? "#E1007E" : "#7C3AED" }}>
-                          {i === 0 ? "IMPULSADORA SENIOR" : i === 1 ? "AZAFATA DE MARCA" : "IMPULSADORA"}
+                          {i === 0 ? "Chambeador Top" : i === 1 ? "🔥 Chambeador Estelar" : "🚀 Chambeador Creciente"}
                         </Text>
                       </View>
                     </View>
