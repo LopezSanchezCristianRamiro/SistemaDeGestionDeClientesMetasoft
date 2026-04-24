@@ -3,7 +3,7 @@ import { httpClient } from "../../../http/httpClient";
 import { getUsuarioId } from "../../../storage/storage";
 import { SeguimientoResponse } from "../types/seguimiento";
 
-export function useSeguimiento() {
+export function useSeguimiento(idUsuarioFiltro?: number | null) {
   const [data, setData] = useState<SeguimientoResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -13,10 +13,12 @@ export function useSeguimiento() {
       setLoading(true);
       setError("");
 
-      const usuarioId = await getUsuarioId();
+      const usuarioIdLogueado = await getUsuarioId();
+
+      const idUsuario = idUsuarioFiltro ?? usuarioIdLogueado;
 
       const response = await httpClient.getAuth<SeguimientoResponse>(
-        `/api/seguimiento?idUsuario=${usuarioId}`,
+        `/api/seguimiento?idUsuario=${idUsuario}`,
         "No se pudo cargar el seguimiento",
       );
 
@@ -26,7 +28,7 @@ export function useSeguimiento() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [idUsuarioFiltro]);
 
   useEffect(() => {
     fetchSeguimiento();

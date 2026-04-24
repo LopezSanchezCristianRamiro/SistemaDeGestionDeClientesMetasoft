@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -7,15 +7,16 @@ import {
 } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
 import { httpClient } from "../../http/httpClient";
+import { getUsuarioData } from "../../storage/storage";
 import Buscador from "./components/Buscador";
 import Filtros, { FilterType } from "./components/Filtros";
 import MetricCard from "./components/MetricCard";
 import ProspectoRow from "./components/ProspectoRow";
 import SeguimientoDetalleModal from "./components/SeguimientoDetalleModal";
+import SelectorUsuario from "./components/SelectorUsuario";
 import { useSeguimiento } from "./hooks/useSeguimiento";
-
 export default function SeguimientoScreen() {
-  const { data, loading, error, refetch } = useSeguimiento();
+ 
   const [filter, setFilter] = useState<FilterType>("Todos");
   const [search, setSearch] = useState("");
   const [detalleVisible, setDetalleVisible] = useState(false);
@@ -24,8 +25,42 @@ export default function SeguimientoScreen() {
   const isMobile = width < 640;
   const isTablet = width >= 640 && width < 1024;
 const isSearching = search.trim().length > 0;
-  const prospectos = data?.prospectos ?? [];
+const [esAdmin, setEsAdmin] = useState(false);
+const [idUsuarioSeleccionado, setIdUsuarioSeleccionado] = useState<number | null>(null);
+const [usuariosFiltro, setUsuariosFiltro] = useState<any[]>([]);
 
+const { data, loading, error, refetch } = useSeguimiento(idUsuarioSeleccionado);
+
+useEffect(() => {
+  const cargarUsuarioLogueado = async () => {
+const usuario = await getUsuarioData();
+setEsAdmin(
+  usuario?.rol?.toUpperCase() === "ADMINISTRADOR"
+);
+  };
+
+  cargarUsuarioLogueado();
+}, []);
+
+useEffect(() => {
+  if (!esAdmin) return;
+
+  const cargarUsuarios = async () => {
+    try {
+      const response: any = await httpClient.getAuth(
+        "/api/usuarios?roles=2,3",
+        "No se pudo cargar usuarios",
+      );
+
+      setUsuariosFiltro(response?.usuarios ?? []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  cargarUsuarios();
+}, [esAdmin]);
+const prospectos = data?.prospectos ?? [];
   const prospectosFiltradosPorEstado =
     filter === "En proceso"
       ? prospectos.filter((x: any) => {
@@ -158,14 +193,24 @@ const isSearching = search.trim().length > 0;
               </ThemedText>
             </View>
 
-            <View className="px-4 pt-3">
-              <Buscador
-                search={search}
-                setSearch={setSearch}
-                isMobile={isMobile}
-                isTablet={isTablet}
-              />
-            </View>
+          <View className="px-4 pt-3">
+  <Buscador
+    search={search}
+    setSearch={setSearch}
+    isMobile={isMobile}
+    isTablet={isTablet}
+  />
+
+  {esAdmin && (
+    <SelectorUsuario
+      usuarios={usuariosFiltro}
+      selectedUserId={idUsuarioSeleccionado}
+      setSelectedUserId={setIdUsuarioSeleccionado}
+      isMobile={isMobile}
+      isTablet={isTablet}
+    />
+  )}
+</View>
           </>
         ) : (
           <>
@@ -180,14 +225,24 @@ const isSearching = search.trim().length > 0;
                   </ThemedText>
                 </View>
 
-                <View style={{ width: isTablet ? 300 : 340 }}>
-                  <Buscador
-                    search={search}
-                    setSearch={setSearch}
-                    isMobile={false}
-                    isTablet={isTablet}
-                  />
-                </View>
+             <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
+  {esAdmin && (
+    <SelectorUsuario
+      usuarios={usuariosFiltro}
+      selectedUserId={idUsuarioSeleccionado}
+      setSelectedUserId={setIdUsuarioSeleccionado}
+      isMobile={false}
+      isTablet={isTablet}
+    />
+  )}
+
+  <Buscador
+    search={search}
+    setSearch={setSearch}
+    isMobile={false}
+    isTablet={isTablet}
+  />
+</View>
               </View>
             </View>
           </>
