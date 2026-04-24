@@ -1,7 +1,7 @@
 import { getToken } from "../storage/storage";
 
 // Usa la URL del .env o fallback a localhost
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://prospectos.ecoguz.com";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000";
 
 async function parseErrorMessage(
   res: Response,
