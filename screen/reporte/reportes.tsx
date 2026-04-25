@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -8,9 +9,9 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getUsuarioData } from "../../storage/storage";
 import { CalendarPicker } from "./components/CalendarPicker";
 import { useReportes } from "./hooks/useReporte";
-
 /* ─── helpers ─── */
 function formatMoney(n: number) {
   if (n >= 1000) return "Bs. " + (n / 1000).toFixed(1) + "K";
@@ -48,6 +49,15 @@ function prevMonthLast() {
 }
 
 export default function ReportesScreen() {
+  const [userRol, setUserRol] = useState<string | null>(null);
+
+  useEffect(() => {
+    getUsuarioData().then((data) => {
+      if (data?.rol) setUserRol(data.rol);
+    });
+  }, []);
+
+  const esAdmin = userRol?.toLowerCase() === "admin" || userRol?.toLowerCase() === "administrador";
   const {
     metrics, interesProspectos, sistemasMasSolicitados,
     seguimientos, rankingProductividad,
@@ -120,20 +130,21 @@ export default function ReportesScreen() {
       {!loading && !error && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
-          {/* MÉTRICAS TOP */}
-          <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>TOTAL PROSPECTOS</Text>
-              <Text style={styles.metricValue}>{metrics?.totalProspectos ?? 0}</Text>
-              <Text style={styles.metricSub}>↑ activos este período</Text>
+          {/* MÉTRICAS TOP — solo admin */}
+          {esAdmin && (
+            <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
+              <View style={styles.metricCard}>
+                <Text style={styles.metricLabel}>TOTAL PROSPECTOS</Text>
+                <Text style={styles.metricValue}>{metrics?.totalProspectos ?? 0}</Text>
+                <Text style={styles.metricSub}>↑ activos este período</Text>
+              </View>
+              <View style={[styles.metricCard, { backgroundColor: "#E1007E" }]}>
+                <Text style={[styles.metricLabel, { color: "rgba(255,255,255,0.7)" }]}>GANANCIA POTENCIAL</Text>
+                <Text style={[styles.metricValue, { color: "#fff" }]}>{formatMoney(metrics?.gananciaPotencial ?? 0)}</Text>
+                <Text style={[styles.metricSub, { color: "rgba(255,255,255,0.6)" }]}>Basado en adelantos</Text>
+              </View>
             </View>
-            <View style={[styles.metricCard, { backgroundColor: "#E1007E" }]}>
-              <Text style={[styles.metricLabel, { color: "rgba(255,255,255,0.7)" }]}>GANANCIA POTENCIAL</Text>
-              <Text style={[styles.metricValue, { color: "#fff" }]}>{formatMoney(metrics?.gananciaPotencial ?? 0)}</Text>
-              <Text style={[styles.metricSub, { color: "rgba(255,255,255,0.6)" }]}>Basado en adelantos</Text>
-            </View>
-          </View>
-
+          )}
           {/* ESTADO SEGUIMIENTOS + INTERÉS */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 14 }}>
@@ -211,7 +222,7 @@ export default function ReportesScreen() {
                     { label: "SISTEMA",    w: 120 },
                     { label: "ADELANTO",   w: 90  },
                     { label: "AZAFATA",    w: 130 },
-                    { label: "CELULAR",    w: 110 },
+                    ...(esAdmin ? [{ label: "CELULAR", w: 110 }] : [{ label: "INTERÉS", w: 90 }]),
                     { label: "ESTADO",     w: 130 },
                   ].map((col) => (
                     <Text key={col.label} style={{ width: col.w, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>
@@ -270,17 +281,38 @@ export default function ReportesScreen() {
                       )}
                     </View>
 
-                    {/* Celular */}
-                    <View style={{ width: 110 }}>
-                      {s.celular && s.celular !== "Sin número" ? (
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                          <Text style={{ fontSize: 10 }}>📞</Text>
-                          <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500" }} numberOfLines={1}>{s.celular}</Text>
+                    {/* Celular solo para admin / Interés para el resto */}
+                    {esAdmin ? (
+                      <View style={{ width: 110 }}>
+                        {s.celular && s.celular !== "Sin número" ? (
+                          <TouchableOpacity
+                            onPress={() => {
+                              const numero = s.celular.replace(/\D/g, ""); // limpia caracteres raros
+                              Linking.openURL(`https://wa.me/591${numero}`);
+                            }}
+                            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+                          >
+                            <Text style={{ fontSize: 10 }}>📞</Text>
+                            <Text style={{ fontSize: 11, color: "#25D366", fontWeight: "600", textDecorationLine: "underline" }} numberOfLines={1}>
+                              {s.celular}
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>—</Text>
+                        )}
+                      </View>
+                    ) : (
+                      <View style={{ width: 90 }}>
+                        <View style={{
+                          backgroundColor: INTERES_COLORS[s.nivelInteres] + "20",
+                          borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start",
+                        }}>
+                          <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[s.nivelInteres] }}>
+                            {s.nivelInteres}
+                          </Text>
                         </View>
-                      ) : (
-                        <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>—</Text>
-                      )}
-                    </View>
+                      </View>
+                    )}
 
                     {/* Estado */}
                     <View style={{ width: 130 }}>
@@ -308,7 +340,7 @@ export default function ReportesScreen() {
                 style={{ marginTop: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: "#F3F4F6", alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
               >
                 <Text style={{ fontSize: 13, fontWeight: "600", color: "#7C3AED" }}>
-                  {mostrarTodosSeguimientos ? "Ver menos" : `Ver más (${seguimientos.length - 5} más)`}
+                  {mostrarTodosSeguimientos ? "Ver menos" : `Ver más (${(seguimientosFiltrados?.length ?? 0) - 5} más)`}
                 </Text>
                 <Text style={{ fontSize: 13, color: "#7C3AED" }}>{mostrarTodosSeguimientos ? "▲" : "▼"}</Text>
               </TouchableOpacity>
@@ -316,39 +348,40 @@ export default function ReportesScreen() {
           </View>
 
           {/* INTERÉS + SISTEMAS */}
-          <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
-            <View style={[styles.sectionCard, { flex: 1 }]}>
-              <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Interés</Text>
-              <View style={{ alignItems: "center", marginBottom: 10 }}>
-                <DonutChart data={interesProspectos} />
+          {esAdmin && (
+            <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
+              <View style={[styles.sectionCard, { flex: 1 }]}>
+                <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Interés</Text>
+                <View style={{ alignItems: "center", marginBottom: 10 }}>
+                  <DonutChart data={interesProspectos} />
+                </View>
+                {Object.entries(INTERES_COLORS).map(([nivel, color]) => (
+                  <View key={nivel} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+                    <Text style={{ fontSize: 11, color: "#6B7280", flex: 1 }}>{nivel}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: "700", color: "#1E0A3C" }}>
+                      {interesProspectos?.porcentajes?.[nivel as "Alto" | "Medio" | "Bajo"] ?? 0}%
+                    </Text>
+                  </View>
+                ))}
               </View>
-              {Object.entries(INTERES_COLORS).map(([nivel, color]) => (
-                <View key={nivel} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
-                  <Text style={{ fontSize: 11, color: "#6B7280", flex: 1 }}>{nivel}</Text>
-                  <Text style={{ fontSize: 11, fontWeight: "700", color: "#1E0A3C" }}>
-                    {interesProspectos?.porcentajes?.[nivel as "Alto" | "Medio" | "Bajo"] ?? 0}%
-                  </Text>
-                </View>
-              ))}
-            </View>
 
-            <View style={[styles.sectionCard, { flex: 1 }]}>
-              <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Sistema Popular</Text>
-              {sistemasMasSolicitados?.slice(0, 4).map((s: any) => (
-                <View key={s.nombre} style={{ marginBottom: 10 }}>
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-                    <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500", flex: 1, marginRight: 8 }} numberOfLines={1} ellipsizeMode="tail">{s.nombre}</Text>
-                    <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "700" }}>{s.leads}</Text>
+              <View style={[styles.sectionCard, { flex: 1 }]}>
+                <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Sistema Popular</Text>
+                {sistemasMasSolicitados?.slice(0, 4).map((s: any) => (
+                  <View key={s.nombre} style={{ marginBottom: 10 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                      <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500", flex: 1, marginRight: 8 }} numberOfLines={1} ellipsizeMode="tail">{s.nombre}</Text>
+                      <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "700" }}>{s.leads}</Text>
+                    </View>
+                    <View style={{ height: 5, backgroundColor: "#F3F4F6", borderRadius: 3 }}>
+                      <View style={{ height: 5, borderRadius: 3, backgroundColor: "#E1007E", width: `${(s.leads / maxLeads) * 100}%` }} />
+                    </View>
                   </View>
-                  <View style={{ height: 5, backgroundColor: "#F3F4F6", borderRadius: 3 }}>
-                    <View style={{ height: 5, borderRadius: 3, backgroundColor: "#E1007E", width: `${(s.leads / maxLeads) * 100}%` }} />
-                  </View>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
-
+          )}
           {/* RANKING */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -412,7 +445,7 @@ function DonutChart({ data }: { data: any }) {
       <View style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, borderWidth: STROKE, borderTopColor: "#E1007E", borderLeftColor: "transparent", borderRightColor: "transparent", borderBottomColor: "transparent", position: "absolute", transform: [{ rotate: "-90deg" }] }} />
       <View style={{ alignItems: "center" }}>
         <Text style={{ fontSize: 18, fontWeight: "800", color: "#1E0A3C" }}>{total >= 1000 ? (total / 1000).toFixed(1) + "K" : total}</Text>
-        <Text style={{ fontSize: 9, color: "#9CA3AF", fontWeight: "600" }}>LEADS</Text>
+        <Text style={{ fontSize: 9, color: "#9CA3AF", fontWeight: "600" }}>PROSPECTOS</Text>
       </View>
     </View>
   );
