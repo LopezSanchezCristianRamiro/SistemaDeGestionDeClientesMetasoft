@@ -92,6 +92,7 @@ export default function SeguimientoDetalleModal({
   onClose,
   prospecto,
   onGuardarPaso,
+   onRefresh,
 }: Props) {
   const { width, height } = useWindowDimensions();
   const [anticipoLocal, setAnticipoLocal] = useState<number>(0);
@@ -317,7 +318,7 @@ const isDesktop = width >= 1024;
       );
 
       setEstadoSeguimiento(nuevoEstado);
-
+await onRefresh?.();
       Alert.alert(
         "Correcto",
         data?.message || `Estado actualizado a ${nuevoEstado}`,

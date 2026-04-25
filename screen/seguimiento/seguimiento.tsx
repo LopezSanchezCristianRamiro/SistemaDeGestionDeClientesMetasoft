@@ -61,39 +61,34 @@ useEffect(() => {
   cargarUsuarios();
 }, [esAdmin]);
 const prospectos = data?.prospectos ?? [];
-  const prospectosFiltradosPorEstado =
-    filter === "En proceso"
-      ? prospectos.filter((x: any) => {
-          const estado = (x.estado || "").toUpperCase().trim();
-          return estado === "EN PROCESO";
-        })
-      : filter === "Cerrado"
-        ? prospectos.filter((x: any) => {
-            const estado = (x.estado || "").toUpperCase().trim();
-            return estado === "CERRADO";
-          })
-        : filter === "Cancelado"
-          ? prospectos.filter((x: any) => {
-              const estado = (x.estado || "").toUpperCase().trim();
-              return estado === "CANCELADO";
-            })
-          : prospectos;
 
-  const filteredProspectos = prospectosFiltradosPorEstado.filter((x: any) => {
-    const texto = search.toLowerCase().trim();
+const normalizar = (value?: string) =>
+  String(value || "").trim().toLowerCase();
 
-    if (!texto) return true;
+const filteredProspectos = prospectos.filter((x: any) => {
+  const texto = normalizar(search);
+  const filtroActual = normalizar(filter);
 
-    const nombre = (x.nombre ?? x.nombres ?? x.nombreCompleto ?? "")
-      .toString()
-      .toLowerCase();
+  const estado = normalizar(x.estado);
 
-    const empresa = (x.empresa ?? x.nombreEmpresa ?? "")
-      .toString()
-      .toLowerCase();
+  const nombreCompleto = `${x.nombre || ""} ${x.apellidos || ""}`;
 
-    return nombre.includes(texto) || empresa.includes(texto);
-  });
+  const coincideEstado =
+    filtroActual === "todos" || estado === filtroActual;
+
+  const coincideBusqueda =
+    !texto ||
+    normalizar(nombreCompleto).includes(texto) ||
+    normalizar(x.nombre).includes(texto) ||
+    normalizar(x.apellidos).includes(texto) ||
+    normalizar(x.empresa).includes(texto) ||
+    normalizar(x.sistemaRequerido).includes(texto) ||
+    normalizar(x.softwareRequerido).includes(texto) ||
+    normalizar(x.rubro).includes(texto);
+
+  return coincideEstado && coincideBusqueda;
+});
+ 
   const handleGuardarPaso = async (payload: {
     idProspecto: number;
     descripcionPaso: string;
@@ -442,7 +437,7 @@ const prospectos = data?.prospectos ?? [];
               ) : (
                filteredProspectos.map((item: any) => (
   <ProspectoRow
-    key={item.id}
+    key={item.idProspecto ?? item.id}
     item={item}
     onPressDetalle={handleOpenDetalle}
     isMobile={isMobile}
@@ -455,15 +450,16 @@ const prospectos = data?.prospectos ?? [];
         </ScrollView>
       </View>
 
-      <SeguimientoDetalleModal
-        visible={detalleVisible}
-        onClose={async () => {
-          setDetalleVisible(false);
-          await refetch();
-        }}
-        prospecto={prospectoSeleccionado}
-        onGuardarPaso={handleGuardarPaso}
-      />
+     <SeguimientoDetalleModal
+  visible={detalleVisible}
+  onClose={async () => {
+    setDetalleVisible(false);
+    await refetch();
+  }}
+  prospecto={prospectoSeleccionado}
+  onGuardarPaso={handleGuardarPaso}
+  onRefresh={refetch}
+/>
     </>
   );
 }

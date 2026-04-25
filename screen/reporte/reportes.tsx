@@ -372,7 +372,7 @@ export default function ReportesScreen() {
                       <View style={{ flex: 1 }}>
                         <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "700", color: "#1E0A3C" }}>{item.nombre}</Text>
                         <Text style={{ fontSize: 10, fontWeight: "600", color: i === 0 ? "#E1007E" : "#7C3AED" }}>
-                          {i === 0 ? "🏆 Top Vendedor" : i === 1 ? "🔥 Estelar" : "🚀 Creciente"}
+                          {i === 0 ? "🏆 Chambeador Top " : i === 1 ? "🔥 Chambeador Estelar" : "🚀 Chambeador Creciente"}
                         </Text>
                       </View>
                     </View>
