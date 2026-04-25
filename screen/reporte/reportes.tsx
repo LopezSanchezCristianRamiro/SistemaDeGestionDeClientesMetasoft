@@ -1,81 +1,100 @@
-// screen/reporte/reportesScreen.tsx
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { CalendarPicker } from "./components/CalendarPicker";
 import { useReportes } from "./hooks/useReporte";
 
+/* ─── helpers ─── */
 function formatMoney(n: number) {
   if (n >= 1000) return "Bs. " + (n / 1000).toFixed(1) + "K";
   return "Bs. " + n.toLocaleString("es-BO");
 }
-
 function getInitials(name: string) {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
+  return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
+function formatDateLabel(iso: string) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  return `${d} ${meses[parseInt(m) - 1]} ${y}`;
 }
 
+/* ─── colores ─── */
 const ESTADO_COLORS: Record<string, string> = {
   "En proceso": "#E1007E",
   Cerrado: "#7C3AED",
   Pendiente: "#0EA5E9",
   Ganado: "#10B981",
   Perdido: "#EF4444",
+  Cancelado: "#F59E0B",
 };
-
-
 const INTERES_COLORS: Record<string, string> = {
   Alto: "#E1007E",
   Medio: "#7C3AED",
   Bajo: "#CBD5E1",
 };
-
 const AVATAR_COLORS = ["#E1007E", "#7C3AED", "#0EA5E9", "#10B981", "#F59E0B"];
 
+function prevMonthLast() {
+  const d = new Date(); d.setDate(0);
+  return d.toISOString().split("T")[0];
+}
+
 export default function ReportesScreen() {
-  const { metrics, interesProspectos, sistemasMasSolicitados, seguimientos, rankingProductividad, loading, error, refetch } =
-    useReportes();
+  const {
+    metrics, interesProspectos, sistemasMasSolicitados,
+    seguimientos, rankingProductividad,
+    loading, error, refetch,
+    desde, hasta, setFiltro,
+  } = useReportes();
+
   const [mostrarTodosSeguimientos, setMostrarTodosSeguimientos] = useState(false);
 
   const maxLeads = sistemasMasSolicitados?.[0]?.leads ?? 1;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F8F7FF" }}>
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          backgroundColor: "#fff",
-          borderBottomWidth: 1,
-          borderBottomColor: "#F0EEFF",
-        }}
-      >
-        <View>
-          <Text style={{ fontSize: 20, fontWeight: "800", color: "#1E0A3C" }}>Reportes</Text>
-          <Text style={{ fontSize: 12, color: "#9CA3AF", marginTop: 1 }}>Reportes varios del sistema.</Text>
+
+      {/* ── HEADER ── */}
+      <View style={{
+        backgroundColor: "#fff",
+        borderBottomWidth: 1,
+        borderBottomColor: "#F0EEFF",
+        paddingHorizontal: 16,
+        paddingTop: 14,
+        paddingBottom: 12,
+      }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <View>
+            <Text style={{ fontSize: 20, fontWeight: "800", color: "#1E0A3C" }}>Reportes</Text>
+            <Text style={{ fontSize: 12, color: "#9CA3AF", marginTop: 1 }}>Reportes varios del sistema.</Text>
+          </View>
+          <Pressable
+            onPress={refetch}
+            disabled={loading}
+            style={{
+              paddingHorizontal: 14, paddingVertical: 7,
+              borderRadius: 20, borderWidth: 1.5, borderColor: "#E1007E",
+            }}
+          >
+            <Text style={{ fontSize: 13, color: "#E1007E", fontWeight: "600" }}>
+              {loading ? "..." : "Actualizar"}
+            </Text>
+          </Pressable>
         </View>
-        <Pressable
-          onPress={refetch}
-          disabled={loading}
-          style={{
-            paddingHorizontal: 14,
-            paddingVertical: 7,
-            borderRadius: 20,
-            borderWidth: 1.5,
-            borderColor: "#E1007E",
-          }}
-        >
-          <Text style={{ fontSize: 13, color: "#E1007E", fontWeight: "600" }}>
-            {loading ? "..." : "Actualizar"}
-          </Text>
-        </Pressable>
+
+        <CalendarPicker
+          desde={desde}
+          hasta={hasta}
+          onChange={(d, h) => setFiltro(d, h)}
+        />
       </View>
 
       {loading && (
@@ -85,42 +104,35 @@ export default function ReportesScreen() {
         </View>
       )}
 
+      {/* ── ERROR ── */}
       {!loading && error && (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
           <Text style={{ color: "#EF4444", textAlign: "center", marginBottom: 16 }}>{error}</Text>
-          <Pressable
-            onPress={refetch}
-            style={{ backgroundColor: "#E1007E", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 }}
-          >
+          <Pressable onPress={refetch} style={{ backgroundColor: "#E1007E", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 }}>
             <Text style={{ color: "#fff", fontWeight: "600" }}>Reintentar</Text>
           </Pressable>
         </View>
       )}
 
+      {/* ── CONTENIDO ── */}
       {!loading && !error && (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
-          {/* ── MÉTRICAS TOP ── */}
+          {/* MÉTRICAS TOP */}
           <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
             <View style={styles.metricCard}>
               <Text style={styles.metricLabel}>TOTAL PROSPECTOS</Text>
               <Text style={styles.metricValue}>{metrics?.totalProspectos ?? 0}</Text>
-              <Text style={styles.metricSub}>↑ activos este mes</Text>
+              <Text style={styles.metricSub}>↑ activos este período</Text>
             </View>
             <View style={[styles.metricCard, { backgroundColor: "#E1007E" }]}>
               <Text style={[styles.metricLabel, { color: "rgba(255,255,255,0.7)" }]}>GANANCIA POTENCIAL</Text>
-              <Text style={[styles.metricValue, { color: "#fff" }]}>
-                {formatMoney(metrics?.gananciaPotencial ?? 0)}
-              </Text>
-              <Text style={[styles.metricSub, { color: "rgba(255,255,255,0.6)" }]}>Basado en los adelantos</Text>
+              <Text style={[styles.metricValue, { color: "#fff" }]}>{formatMoney(metrics?.gananciaPotencial ?? 0)}</Text>
+              <Text style={[styles.metricSub, { color: "rgba(255,255,255,0.6)" }]}>Basado en adelantos</Text>
             </View>
           </View>
 
-          {/* ── ESTADO DE SEGUIMIENTOS ── */}
+          {/* ESTADO SEGUIMIENTOS + INTERÉS */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 14 }}>
               <Text style={styles.sectionTitle}>Estado de Seguimientos</Text>
@@ -128,56 +140,25 @@ export default function ReportesScreen() {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 10 }}>
-                {/* Estados */}
                 {Object.entries(metrics?.estadoCounts ?? {}).map(([estado, count], i) => (
-                  <View
-                    key={estado}
-                    style={[
-                      styles.estadoChip,
-                      i === 0 && { borderColor: ESTADO_COLORS[estado] ?? "#E1007E", borderWidth: 2 },
-                    ]}
-                  >
+                  <View key={estado} style={[styles.estadoChip, i === 0 && { borderColor: ESTADO_COLORS[estado] ?? "#E1007E", borderWidth: 2 }]}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      <View
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 10,
-                          backgroundColor: ESTADO_COLORS[estado] ?? "#E1007E",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
+                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: ESTADO_COLORS[estado] ?? "#E1007E", alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
                       </View>
-                      <Text style={{ fontSize: 10, fontWeight: "700", color: ESTADO_COLORS[estado] ?? "#E1007E", textTransform: "uppercase" }}>
-                        {estado}
-                      </Text>
+                      <Text style={{ fontSize: 10, fontWeight: "700", color: ESTADO_COLORS[estado] ?? "#E1007E", textTransform: "uppercase" }}>{estado}</Text>
                     </View>
-                    <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>{count}</Text>
+                    <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>{count as number}</Text>
                     <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
                   </View>
                 ))}
-
-                {/* Interés */}
                 {Object.entries(interesProspectos?.porcentajes ?? {}).map(([nivel, pct], i) => (
                   <View key={nivel} style={styles.estadoChip}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      <View
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 10,
-                          backgroundColor: INTERES_COLORS[nivel] ?? "#CBD5E1",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
+                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: INTERES_COLORS[nivel] ?? "#CBD5E1", alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
                       </View>
-                      <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[nivel] ?? "#9CA3AF", textTransform: "uppercase" }}>
-                        {nivel}
-                      </Text>
+                      <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[nivel] ?? "#9CA3AF", textTransform: "uppercase" }}>{nivel}</Text>
                     </View>
                     <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>
                       {interesProspectos?.[nivel as "Alto" | "Medio" | "Bajo"] ?? 0}
@@ -189,23 +170,35 @@ export default function ReportesScreen() {
             </ScrollView>
           </View>
 
-          {/* ── SEGUIMIENTOS TABLE ── */}
+          {/* ── TABLA SEGUIMIENTOS ── */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <Text style={styles.sectionTitle}>Seguimiento</Text>
+              <Text style={styles.sectionTitle}>Seguimientos</Text>
+              <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ fontSize: 11, color: "#7C3AED", fontWeight: "700" }}>{seguimientos?.length ?? 0} total</Text>
+              </View>
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{ minWidth: 500 }}>
+              <View style={{ minWidth: 720 }}>
 
-                {/* Headers */}
-                <View style={{ flexDirection: "row", marginBottom: 8 }}>
-                  <Text style={{ width: 160, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>NOMBRE DE PROSPECTO</Text>
-                  <Text style={{ width: 120, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>SISTEMA</Text>
-                  <Text style={{ width: 110, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>ADELANTO</Text>
-                  <Text style={{ width: 100, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>ESTADO</Text>
+                {/* HEADERS */}
+                <View style={{ flexDirection: "row", marginBottom: 8, paddingHorizontal: 4 }}>
+                  {[
+                    { label: "PROSPECTO",  w: 160 },
+                    { label: "SISTEMA",    w: 120 },
+                    { label: "ADELANTO",   w: 90  },
+                    { label: "AZAFATA",    w: 130 },
+                    { label: "CELULAR",    w: 110 },
+                    { label: "ESTADO",     w: 130 },
+                  ].map((col) => (
+                    <Text key={col.label} style={{ width: col.w, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>
+                      {col.label}
+                    </Text>
+                  ))}
                 </View>
 
+                {/* FILAS */}
                 {(mostrarTodosSeguimientos ? seguimientos : seguimientos?.slice(0, 5))?.map((s: any, i: number) => (
                   <View
                     key={s.id}
@@ -213,17 +206,14 @@ export default function ReportesScreen() {
                       flexDirection: "row",
                       alignItems: "center",
                       paddingVertical: 10,
+                      paddingHorizontal: 4,
                       borderTopWidth: i === 0 ? 0 : 1,
                       borderTopColor: "#F3F4F6",
                     }}
                   >
-                    {/* Nombre */}
+                    {/* Nombre + empresa */}
                     <View style={{ width: 160, flexDirection: "row", alignItems: "center", gap: 8 }}>
-                      <View style={{
-                        width: 34, height: 34, borderRadius: 17,
-                        backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
-                        alignItems: "center", justifyContent: "center",
-                      }}>
+                      <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{getInitials(s.nombre)}</Text>
                       </View>
                       <View style={{ flex: 1 }}>
@@ -234,74 +224,79 @@ export default function ReportesScreen() {
 
                     {/* Sistema */}
                     <View style={{ width: 120 }}>
-                      <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start", maxWidth: 115, }}>
+                      <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start", maxWidth: 115 }}>
                         <Text style={{ fontSize: 10, color: "#7C3AED", fontWeight: "600" }} numberOfLines={1}>{s.sistemaRequerido}</Text>
                       </View>
                     </View>
 
                     {/* Adelanto */}
-                    <Text style={{ width: 110, fontSize: 12, fontWeight: "600", color: "#1E0A3C" }}>
-                      Bs. {s.adelanto.toLocaleString("es-BO")}
+                    <Text style={{ width: 90, fontSize: 12, fontWeight: "600", color: s.adelanto > 0 ? "#10B981" : "#9CA3AF" }}>
+                      {s.adelanto > 0 ? `Bs. ${s.adelanto.toLocaleString("es-BO")}` : "—"}
                     </Text>
 
+                    {/* Azafata / entregadoPor */}
+                    <View style={{ width: 130, flexDirection: "row", alignItems: "center", gap: 6 }}>
+                      {s.entregadoPor && s.entregadoPor !== "Sin asignar" ? (
+                        <>
+                          <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: "#FDF2F8", borderWidth: 1.5, borderColor: "#E1007E", alignItems: "center", justifyContent: "center" }}>
+                            <Text style={{ fontSize: 9, color: "#E1007E", fontWeight: "700" }}>{getInitials(s.entregadoPor)}</Text>
+                          </View>
+                          <Text style={{ fontSize: 11, color: "#1E0A3C", fontWeight: "600", flex: 1 }} numberOfLines={1}>{s.entregadoPor}</Text>
+                        </>
+                      ) : (
+                        <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>Sin asignar</Text>
+                      )}
+                    </View>
+
+                    {/* Celular */}
+                    <View style={{ width: 110 }}>
+                      {s.celular && s.celular !== "Sin número" ? (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                          <Text style={{ fontSize: 10 }}>📞</Text>
+                          <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500" }} numberOfLines={1}>{s.celular}</Text>
+                        </View>
+                      ) : (
+                        <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>—</Text>
+                      )}
+                    </View>
+
                     {/* Estado */}
-                    <View style={{ width: 100 }}>
+                    <View style={{ width: 130 }}>
                       <View style={{
-                        backgroundColor:
-                          s.estadoSeguimiento === "Pendiente" ? "#E0F2FE"
-                          : s.estadoSeguimiento === "Cerrado" ? "#F3F4F6" : "#FDF2F8",
-                        borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start",
+                        backgroundColor: s.estadoSeguimiento === "Pendiente" ? "#E0F2FE" : s.estadoSeguimiento === "Cerrado" ? "#F3F4F6" : "#FDF2F8",
+                        borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start", maxWidth: 125,
                       }}>
                         <Text style={{
                           fontSize: 10, fontWeight: "600",
-                          color:
-                            s.estadoSeguimiento === "Pendiente" ? "#0EA5E9"
-                            : s.estadoSeguimiento === "Cerrado" ? "#6B7280" : "#E1007E",
-                        }} numberOfLines={1}>
+                          color: s.estadoSeguimiento === "Pendiente" ? "#0EA5E9" : s.estadoSeguimiento === "Cerrado" ? "#6B7280" : "#E1007E",
+                        }} numberOfLines={2}>
                           {s.estadoSeguimiento}
                         </Text>
                       </View>
                     </View>
-
                   </View>
                 ))}
-
               </View>
             </ScrollView>
 
-            {/* ── BOTÓN VER MÁS / VER MENOS ── */}
+            {/* VER MÁS / MENOS */}
             {seguimientos?.length > 5 && (
               <TouchableOpacity
                 onPress={() => setMostrarTodosSeguimientos(!mostrarTodosSeguimientos)}
-                style={{
-                  marginTop: 12,
-                  paddingVertical: 10,
-                  borderTopWidth: 1,
-                  borderTopColor: "#F3F4F6",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
+                style={{ marginTop: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: "#F3F4F6", alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
               >
                 <Text style={{ fontSize: 13, fontWeight: "600", color: "#7C3AED" }}>
-                  {mostrarTodosSeguimientos
-                    ? "Ver menos"
-                    : `Ver más detalles (${seguimientos.length - 5} más)`}
+                  {mostrarTodosSeguimientos ? "Ver menos" : `Ver más (${seguimientos.length - 5} más)`}
                 </Text>
-                <Text style={{ fontSize: 13, color: "#7C3AED" }}>
-                  {mostrarTodosSeguimientos ? "▲" : "▼"}
-                </Text>
+                <Text style={{ fontSize: 13, color: "#7C3AED" }}>{mostrarTodosSeguimientos ? "▲" : "▼"}</Text>
               </TouchableOpacity>
             )}
-
           </View>
 
-          {/* ── INTERÉS + SISTEMAS (lado a lado) ── */}
+          {/* INTERÉS + SISTEMAS */}
           <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
-            {/* Donut Interés */}
             <View style={[styles.sectionCard, { flex: 1 }]}>
-              <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Interés de Prospectos</Text>
+              <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Interés</Text>
               <View style={{ alignItems: "center", marginBottom: 10 }}>
                 <DonutChart data={interesProspectos} />
               </View>
@@ -316,94 +311,57 @@ export default function ReportesScreen() {
               ))}
             </View>
 
-            {/* Sistemas */}
             <View style={[styles.sectionCard, { flex: 1 }]}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <Text style={styles.sectionTitle}>Sistema Popular</Text>
-              </View>
+              <Text style={[styles.sectionTitle, { marginBottom: 12 }]}>Sistema Popular</Text>
               {sistemasMasSolicitados?.slice(0, 4).map((s: any) => (
                 <View key={s.nombre} style={{ marginBottom: 10 }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-                    <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500", flex: 1, marginRight: 8 }} numberOfLines={1} 
-  ellipsizeMode="tail">
-                      {s.nombre}
-                    </Text>
-                    <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "700" }}>{s.leads} Leads</Text>
+                    <Text style={{ fontSize: 11, color: "#374151", fontWeight: "500", flex: 1, marginRight: 8 }} numberOfLines={1} ellipsizeMode="tail">{s.nombre}</Text>
+                    <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "700" }}>{s.leads}</Text>
                   </View>
                   <View style={{ height: 5, backgroundColor: "#F3F4F6", borderRadius: 3 }}>
-                    <View
-                      style={{
-                        height: 5,
-                        borderRadius: 3,
-                        backgroundColor: "#E1007E",
-                        width: `${(s.leads / maxLeads) * 100}%`,
-                      }}
-                    />
+                    <View style={{ height: 5, borderRadius: 3, backgroundColor: "#E1007E", width: `${(s.leads / maxLeads) * 100}%` }} />
                   </View>
                 </View>
               ))}
             </View>
           </View>
 
-          {/* ── RANKING ── */}
+          {/* RANKING */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={styles.sectionTitle}>Ranking de Productividad (Personal)</Text>
-                <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Desempeño mensual de azafatas e impulsadores</Text>
+                <Text style={styles.sectionTitle}>Ranking de Productividad</Text>
+                <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Desempeño del período seleccionado</Text>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#FDF2F8", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 }}>
                 <Text style={{ fontSize: 11, color: "#E1007E" }}>🏅</Text>
-                <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "600" }}>Personal Destacado</Text>
+                <Text style={{ fontSize: 11, color: "#E1007E", fontWeight: "600" }}>Top 5</Text>
               </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14 }}>
               <View style={{ flexDirection: "row", gap: 12 }}>
                 {rankingProductividad?.map((item: any, i: number) => (
-                  <View
-                    key={item.idUsuario}
-                    style={[
-                      styles.rankingCard,
-                      i === 0 && { borderColor: "#E1007E", borderWidth: 2 },
-                      { overflow: "hidden" },
-                    ]}
-                  >
+                  <View key={item.idUsuario} style={[styles.rankingCard, i === 0 && { borderColor: "#E1007E", borderWidth: 2 }, { overflow: "hidden" }]}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <View
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 18,
-                          backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {i === 0 ? (
-                          <Text style={{ fontSize: 16 }}>⭐</Text>
-                        ) : (
-                          <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>
-                            {getInitials(item.nombre)}
-                          </Text>
-                        )}
+                      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], alignItems: "center", justifyContent: "center" }}>
+                        {i === 0 ? <Text style={{ fontSize: 16 }}>⭐</Text> : <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>{getInitials(item.nombre)}</Text>}
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text numberOfLines={1}  style={{ fontSize: 13, fontWeight: "700", color: "#1E0A3C" }}>{item.nombre}</Text>
+                        <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "700", color: "#1E0A3C" }}>{item.nombre}</Text>
                         <Text style={{ fontSize: 10, fontWeight: "600", color: i === 0 ? "#E1007E" : "#7C3AED" }}>
-                          {i === 0 ? "Chambeador Top" : i === 1 ? "🔥 Chambeador Estelar" : "🚀 Chambeador Creciente"}
+                          {i === 0 ? "🏆 Top Vendedor" : i === 1 ? "🔥 Estelar" : "🚀 Creciente"}
                         </Text>
                       </View>
                     </View>
                     <View style={{ flexDirection: "row", gap: 16 }}>
                       <View>
-                        <Text style={{ fontSize: 10, color: "#9CA3AF" }}>Prospectos:</Text>
+                        <Text style={{ fontSize: 10, color: "#9CA3AF" }}>Prospectos</Text>
                         <Text style={{ fontSize: 15, fontWeight: "700", color: "#1E0A3C" }}>{item.totalProspectos}</Text>
                       </View>
                       <View>
-                        <Text style={{ fontSize: 10, color: "#9CA3AF" }}>Ventas:</Text>
-                        <Text style={{ fontSize: 15, fontWeight: "700", color: "#1E0A3C" }}>
-                          Bs. {item.totalVentas.toLocaleString("es-BO")}
-                        </Text>
+                        <Text style={{ fontSize: 10, color: "#9CA3AF" }}>Ventas</Text>
+                        <Text style={{ fontSize: 15, fontWeight: "700", color: "#1E0A3C" }}>Bs. {item.totalVentas.toLocaleString("es-BO")}</Text>
                       </View>
                     </View>
                   </View>
@@ -418,64 +376,18 @@ export default function ReportesScreen() {
   );
 }
 
-// ── Mini Donut Chart (SVG-free, pure RN) ──
+/* ── Donut chart simple ── */
 function DonutChart({ data }: { data: any }) {
   const total = data?.total ?? 1;
-  const alto = data?.Alto ?? 0;
+  const alto  = data?.Alto  ?? 0;
   const medio = data?.Medio ?? 0;
-
-  const pctAlto = alto / total;
-  const pctMedio = medio / total;
-
-  const SIZE = 100;
-  const STROKE = 14;
-  const R = (SIZE - STROKE) / 2;
-  const CIRC = 2 * Math.PI * R;
-
-  const altoLen = pctAlto * CIRC;
-  const medioLen = pctMedio * CIRC;
-  const bajoLen = CIRC - altoLen - medioLen;
-
+  const pctAlto  = alto  / total;
+  const SIZE = 100, STROKE = 14;
   return (
     <View style={{ width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center" }}>
-      {/* Fake donut using nested rings — RN has no SVG built-in */}
-      <View
-        style={{
-          width: SIZE,
-          height: SIZE,
-          borderRadius: SIZE / 2,
-          borderWidth: STROKE,
-          borderColor: "#CBD5E1",
-          position: "absolute",
-        }}
-      />
-      <View
-        style={{
-          width: SIZE,
-          height: SIZE,
-          borderRadius: SIZE / 2,
-          borderWidth: STROKE,
-          borderColor: "#7C3AED",
-          borderRightColor: "transparent",
-          borderBottomColor: "transparent",
-          position: "absolute",
-          transform: [{ rotate: `${pctAlto * 360 - 90}deg` }],
-        }}
-      />
-      <View
-        style={{
-          width: SIZE,
-          height: SIZE,
-          borderRadius: SIZE / 2,
-          borderWidth: STROKE,
-          borderTopColor: "#E1007E",
-          borderLeftColor: "transparent",
-          borderRightColor: "transparent",
-          borderBottomColor: "transparent",
-          position: "absolute",
-          transform: [{ rotate: "-90deg" }],
-        }}
-      />
+      <View style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, borderWidth: STROKE, borderColor: "#CBD5E1", position: "absolute" }} />
+      <View style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, borderWidth: STROKE, borderColor: "#7C3AED", borderRightColor: "transparent", borderBottomColor: "transparent", position: "absolute", transform: [{ rotate: `${pctAlto * 360 - 90}deg` }] }} />
+      <View style={{ width: SIZE, height: SIZE, borderRadius: SIZE / 2, borderWidth: STROKE, borderTopColor: "#E1007E", borderLeftColor: "transparent", borderRightColor: "transparent", borderBottomColor: "transparent", position: "absolute", transform: [{ rotate: "-90deg" }] }} />
       <View style={{ alignItems: "center" }}>
         <Text style={{ fontSize: 18, fontWeight: "800", color: "#1E0A3C" }}>{total >= 1000 ? (total / 1000).toFixed(1) + "K" : total}</Text>
         <Text style={{ fontSize: 9, color: "#9CA3AF", fontWeight: "600" }}>LEADS</Text>
@@ -484,67 +396,14 @@ function DonutChart({ data }: { data: any }) {
   );
 }
 
+/* ── Estilos ── */
 const styles = {
-  metricCard: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 16,
-    shadowColor: "#7C3AED",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  metricLabel: {
-    fontSize: 10,
-    fontWeight: "700" as const,
-    color: "#9CA3AF",
-    letterSpacing: 0.5,
-    marginBottom: 6,
-    textTransform: "uppercase" as const,
-  },
-  metricValue: {
-    fontSize: 26,
-    fontWeight: "800" as const,
-    color: "#1E0A3C",
-    marginBottom: 4,
-  },
-  metricSub: {
-    fontSize: 11,
-    color: "#10B981",
-    fontWeight: "500" as const,
-  },
-  sectionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#7C3AED",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700" as const,
-    color: "#1E0A3C",
-  },
-  estadoChip: {
-    backgroundColor: "#F8F7FF",
-    borderRadius: 16,
-    padding: 14,
-    minWidth: 120,
-    borderWidth: 1.5,
-    borderColor: "transparent",
-  },
-  rankingCard: {
-    backgroundColor: "#F8F7FF",
-    borderRadius: 16,
-    padding: 16,
-    width: 200,
-    borderWidth: 1.5,
-    borderColor: "transparent",
-  },
+  metricCard: { flex: 1, backgroundColor: "#fff", borderRadius: 20, padding: 16, shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  metricLabel: { fontSize: 10, fontWeight: "700" as const, color: "#9CA3AF", letterSpacing: 0.5, marginBottom: 6, textTransform: "uppercase" as const },
+  metricValue: { fontSize: 26, fontWeight: "800" as const, color: "#1E0A3C", marginBottom: 4 },
+  metricSub:   { fontSize: 11, color: "#10B981", fontWeight: "500" as const },
+  sectionCard: { backgroundColor: "#fff", borderRadius: 20, padding: 16, marginBottom: 12, shadowColor: "#7C3AED", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  sectionTitle: { fontSize: 14, fontWeight: "700" as const, color: "#1E0A3C" },
+  estadoChip:  { backgroundColor: "#F8F7FF", borderRadius: 16, padding: 14, minWidth: 120, borderWidth: 1.5, borderColor: "transparent" },
+  rankingCard: { backgroundColor: "#F8F7FF", borderRadius: 16, padding: 16, width: 200, borderWidth: 1.5, borderColor: "transparent" },
 };

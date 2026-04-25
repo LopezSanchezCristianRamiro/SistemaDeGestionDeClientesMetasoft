@@ -23,6 +23,8 @@ interface Seguimiento {
   sistemaRequerido: string;
   adelanto: number;
   estadoSeguimiento: string;
+  entregadoPor: string;
+  celular: string;
 }
 
 interface RankingItem {
@@ -42,53 +44,96 @@ interface ReporteData {
   rankingProductividad: RankingItem[];
 }
 
-const CACHE_KEY = "reportes_cache";
+// Devuelve "2026-04-01" dado un Date
+function toDateStr(d: Date) {
+  return d.toISOString().split("T")[0];
+}
+
+// Primer día del mes actual
+function firstOfMonth() {
+  const d = new Date();
+  d.setDate(1);
+  return toDateStr(d);
+}
+
+// Último día del mes actual
+function lastOfMonth() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(0);
+  return toDateStr(d);
+}
+
+const CACHE_KEY = "reportes_cache_v2";
 
 export function useReportes() {
-  const [data, setData] = useState<ReporteData | null>(null);
+  const [data, setData]       = useState<ReporteData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
+  // ── Fechas como estado ──────────────────────────────────────
+  const [desde, setDesde] = useState(firstOfMonth());
+  const [hasta, setHasta] = useState(lastOfMonth());
+
+  const fetchData = useCallback(async (d: string, h: string) => {
     setLoading(true);
     setError(null);
 
-    const cached = await AsyncStorage.getItem(CACHE_KEY);
+    // Mostrar cache mientras carga
+    const cacheKey = `${CACHE_KEY}_${d}_${h}`;
+    const cached = await AsyncStorage.getItem(cacheKey);
     if (cached) {
       setData(JSON.parse(cached));
-      setLoading(false); // ← quita el spinner con datos viejos
+      setLoading(false);
     }
+
     try {
-      const json = await httpClient.getAuth<ReporteData>("/api/reportes");
+      // ← POST con body JSON
+      const json = await httpClient.postAuth<ReporteData>("/api/reportes", {
+        desde: d,
+        hasta: h,
+      });
       setData(json);
-      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(json));
+      await AsyncStorage.setItem(cacheKey, JSON.stringify(json));
     } catch (e: any) {
-      setError(e.message ?? "Error desconocido");
+      if (!cached) setError(e.message ?? "Error desconocido");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(desde, hasta);
+  }, [fetchData, desde, hasta]);
+
+  // Función pública para cambiar fechas y refrescar
+  const setFiltro = useCallback((d: string, h: string) => {
+    setDesde(d);
+    setHasta(h);
+  }, []);
+
+  const refetch = useCallback(() => fetchData(desde, hasta), [fetchData, desde, hasta]);
 
   return {
     metrics: data
       ? {
-          totalProspectos: data.totalProspectos,
+          totalProspectos:  data.totalProspectos,
           gananciaPotencial: data.gananciaPotencial,
-          estadoCounts: data.porEstadoSeguimiento,
-          totalAdelantos: data.seguimientos?.reduce((acc, s) => acc + (s.adelanto ?? 0), 0) ?? 0,
-          totalVendedores: data.rankingProductividad?.length ?? 0,
+          estadoCounts:     data.porEstadoSeguimiento,
+          totalAdelantos:   data.seguimientos?.reduce((acc, s) => acc + (s.adelanto ?? 0), 0) ?? 0,
+          totalVendedores:  data.rankingProductividad?.length ?? 0,
         }
       : null,
-    interesProspectos: data?.interesProspectos ?? null,
+    interesProspectos:    data?.interesProspectos ?? null,
     sistemasMasSolicitados: data?.sistemasMasSolicitados ?? [],
-    seguimientos: data?.seguimientos ?? [],
+    seguimientos:         data?.seguimientos ?? [],
     rankingProductividad: data?.rankingProductividad ?? [],
     loading,
     error,
-    refetch: fetchData,
+    refetch,
+    // Exponer fechas y setter
+    desde,
+    hasta,
+    setFiltro,
   };
 }
