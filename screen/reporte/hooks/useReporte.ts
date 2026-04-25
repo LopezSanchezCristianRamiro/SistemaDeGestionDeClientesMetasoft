@@ -25,6 +25,7 @@ interface Seguimiento {
   estadoSeguimiento: string;
   entregadoPor: string;
   celular: string;
+  nivelInteres: "Alto" | "Medio" | "Bajo"; 
 }
 
 interface RankingItem {

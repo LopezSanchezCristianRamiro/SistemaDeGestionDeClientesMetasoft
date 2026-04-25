@@ -54,11 +54,13 @@ export default function ReportesScreen() {
     loading, error, refetch,
     desde, hasta, setFiltro,
   } = useReportes();
-
+  const [filtroInteres, setFiltroInteres] = useState<string | null>(null);
   const [mostrarTodosSeguimientos, setMostrarTodosSeguimientos] = useState(false);
 
   const maxLeads = sistemasMasSolicitados?.[0]?.leads ?? 1;
-
+  const seguimientosFiltrados = filtroInteres
+    ? seguimientos?.filter((s: any) => s.nivelInteres === filtroInteres)
+    : seguimientos;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F8F7FF" }}>
 
@@ -140,8 +142,42 @@ export default function ReportesScreen() {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 10 }}>
+
+                {(["Alto", "Medio", "Bajo"] as const).map((nivel, i) => {
+                  const isSelected = filtroInteres === nivel;
+                  return (
+                    <TouchableOpacity
+                      key={nivel}
+                      onPress={() => {
+                        setFiltroInteres(isSelected ? null : nivel);
+                        setMostrarTodosSeguimientos(false);
+                      }}
+                      style={[
+                        styles.estadoChip,
+                        isSelected && {
+                          borderColor: INTERES_COLORS[nivel],
+                          borderWidth: 2,
+                          backgroundColor: "#FDF2F8",
+                        },
+                      ]}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: INTERES_COLORS[nivel], alignItems: "center", justifyContent: "center" }}>
+                          <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
+                        </View>
+                        <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[nivel], textTransform: "uppercase" }}>{nivel}</Text>
+                        {isSelected && <Text style={{ fontSize: 10, color: INTERES_COLORS[nivel] }}>✓</Text>}
+                      </View>
+                      <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>
+                        {interesProspectos?.[nivel] ?? 0}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+
                 {Object.entries(metrics?.estadoCounts ?? {}).map(([estado, count], i) => (
-                  <View key={estado} style={[styles.estadoChip, i === 0 && { borderColor: ESTADO_COLORS[estado] ?? "#E1007E", borderWidth: 2 }]}>
+                  <View key={estado} style={styles.estadoChip}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
                       <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: ESTADO_COLORS[estado] ?? "#E1007E", alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
@@ -152,30 +188,16 @@ export default function ReportesScreen() {
                     <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
                   </View>
                 ))}
-                {Object.entries(interesProspectos?.porcentajes ?? {}).map(([nivel, pct], i) => (
-                  <View key={nivel} style={styles.estadoChip}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: INTERES_COLORS[nivel] ?? "#CBD5E1", alignItems: "center", justifyContent: "center" }}>
-                        <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
-                      </View>
-                      <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[nivel] ?? "#9CA3AF", textTransform: "uppercase" }}>{nivel}</Text>
-                    </View>
-                    <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>
-                      {interesProspectos?.[nivel as "Alto" | "Medio" | "Bajo"] ?? 0}
-                    </Text>
-                    <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
-                  </View>
-                ))}
+                
               </View>
             </ScrollView>
           </View>
-
           {/* ── TABLA SEGUIMIENTOS ── */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <Text style={styles.sectionTitle}>Seguimientos</Text>
               <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
-                <Text style={{ fontSize: 11, color: "#7C3AED", fontWeight: "700" }}>{seguimientos?.length ?? 0} total</Text>
+                <Text style={{ fontSize: 11, color: "#7C3AED", fontWeight: "700" }}>{seguimientosFiltrados?.length ?? 0} total{filtroInteres ? ` · ${filtroInteres}` : ""}</Text>
               </View>
             </View>
 
@@ -199,7 +221,7 @@ export default function ReportesScreen() {
                 </View>
 
                 {/* FILAS */}
-                {(mostrarTodosSeguimientos ? seguimientos : seguimientos?.slice(0, 5))?.map((s: any, i: number) => (
+                {(mostrarTodosSeguimientos ? seguimientosFiltrados : seguimientosFiltrados?.slice(0, 5))?.map((s: any, i: number) => (
                   <View
                     key={s.id}
                     style={{
@@ -280,7 +302,7 @@ export default function ReportesScreen() {
             </ScrollView>
 
             {/* VER MÁS / MENOS */}
-            {seguimientos?.length > 5 && (
+            {(seguimientosFiltrados?.length ?? 0) > 5 && (
               <TouchableOpacity
                 onPress={() => setMostrarTodosSeguimientos(!mostrarTodosSeguimientos)}
                 style={{ marginTop: 12, paddingVertical: 10, borderTopWidth: 1, borderTopColor: "#F3F4F6", alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
