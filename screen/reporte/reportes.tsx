@@ -65,12 +65,21 @@ export default function ReportesScreen() {
     desde, hasta, setFiltro,
   } = useReportes();
   const [filtroInteres, setFiltroInteres] = useState<string | null>(null);
+  const [filtroEstado, setFiltroEstado] = useState<string | null>(null); 
   const [mostrarTodosSeguimientos, setMostrarTodosSeguimientos] = useState(false);
 
   const maxLeads = sistemasMasSolicitados?.[0]?.leads ?? 1;
-  const seguimientosFiltrados = filtroInteres
-    ? seguimientos?.filter((s: any) => s.nivelInteres === filtroInteres)
-    : seguimientos;
+  const seguimientosFiltrados = seguimientos?.filter((s: any) => {
+    const passInteres = filtroInteres ? s.nivelInteres === filtroInteres : true;
+    const passEstado  = filtroEstado  ? s.estadoSeguimientoReal === filtroEstado : true;
+    return passInteres && passEstado;
+  });
+
+  const conteoPorEstado = seguimientos?.reduce((acc: Record<string, number>, s: any) => {
+    const estado = s.estadoSeguimientoReal ?? "Sin seguimiento";
+    acc[estado] = (acc[estado] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F8F7FF" }}>
 
@@ -145,15 +154,12 @@ export default function ReportesScreen() {
               </View>
             </View>
           )}
-          {/* ESTADO SEGUIMIENTOS + INTERÉS */}
+          {/* UNA SOLA FILA — Interés + Estado */}
           <View style={styles.sectionCard}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 14 }}>
-              <Text style={styles.sectionTitle}>Estado de Seguimientos</Text>
-              <Text style={styles.sectionTitle}>Grado de interés</Text>
-            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 10 }}>
 
+                {/* Chips de Interés */}
                 {(["Alto", "Medio", "Bajo"] as const).map((nivel, i) => {
                   const isSelected = filtroInteres === nivel;
                   return (
@@ -161,16 +167,10 @@ export default function ReportesScreen() {
                       key={nivel}
                       onPress={() => {
                         setFiltroInteres(isSelected ? null : nivel);
+                        setFiltroEstado(null); // ← limpia el otro
                         setMostrarTodosSeguimientos(false);
                       }}
-                      style={[
-                        styles.estadoChip,
-                        isSelected && {
-                          borderColor: INTERES_COLORS[nivel],
-                          borderWidth: 2,
-                          backgroundColor: "#FDF2F8",
-                        },
-                      ]}
+                      style={[styles.estadoChip, isSelected && { borderColor: INTERES_COLORS[nivel], borderWidth: 2, backgroundColor: "#FDF2F8" }]}
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
                         <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: INTERES_COLORS[nivel], alignItems: "center", justifyContent: "center" }}>
@@ -179,27 +179,41 @@ export default function ReportesScreen() {
                         <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[nivel], textTransform: "uppercase" }}>{nivel}</Text>
                         {isSelected && <Text style={{ fontSize: 10, color: INTERES_COLORS[nivel] }}>✓</Text>}
                       </View>
-                      <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>
-                        {interesProspectos?.[nivel] ?? 0}
-                      </Text>
+                      <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>{interesProspectos?.[nivel] ?? 0}</Text>
                       <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
                     </TouchableOpacity>
                   );
                 })}
 
-                {Object.entries(metrics?.estadoCounts ?? {}).map(([estado, count], i) => (
-                  <View key={estado} style={styles.estadoChip}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: ESTADO_COLORS[estado] ?? "#E1007E", alignItems: "center", justifyContent: "center" }}>
-                        <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
+                {/* Separador visual */}
+                <View style={{ width: 1, backgroundColor: "#F3F4F6", marginHorizontal: 4 }} />
+
+                {/* Chips de Estado */}
+                {Object.entries(conteoPorEstado ?? {}).map(([estado, count], i) => {
+                  const isSelected = filtroEstado === estado;
+                  return (
+                    <TouchableOpacity
+                      key={estado}
+                      onPress={() => {
+                        setFiltroEstado(isSelected ? null : estado);
+                        setFiltroInteres(null); // ← limpia el otro
+                        setMostrarTodosSeguimientos(false);
+                      }}
+                      style={[styles.estadoChip, isSelected && { borderColor: ESTADO_COLORS[estado] ?? "#E1007E", borderWidth: 2, backgroundColor: "#FDF2F8" }]}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: ESTADO_COLORS[estado] ?? "#E1007E", alignItems: "center", justifyContent: "center" }}>
+                          <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{i + 1}</Text>
+                        </View>
+                        <Text style={{ fontSize: 10, fontWeight: "700", color: ESTADO_COLORS[estado] ?? "#E1007E", textTransform: "uppercase" }}>{estado}</Text>
+                        {isSelected && <Text style={{ fontSize: 10, color: ESTADO_COLORS[estado] }}>✓</Text>}
                       </View>
-                      <Text style={{ fontSize: 10, fontWeight: "700", color: ESTADO_COLORS[estado] ?? "#E1007E", textTransform: "uppercase" }}>{estado}</Text>
-                    </View>
-                    <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>{count as number}</Text>
-                    <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
-                  </View>
-                ))}
-                
+                      <Text style={{ fontSize: 26, fontWeight: "800", color: "#1E0A3C" }}>{count}</Text>
+                      <Text style={{ fontSize: 11, color: "#9CA3AF" }}>Prospectos</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+
               </View>
             </ScrollView>
           </View>
@@ -208,7 +222,7 @@ export default function ReportesScreen() {
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <Text style={styles.sectionTitle}>Seguimientos</Text>
               <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 }}>
-                <Text style={{ fontSize: 11, color: "#7C3AED", fontWeight: "700" }}>{seguimientosFiltrados?.length ?? 0} total{filtroInteres ? ` · ${filtroInteres}` : ""}</Text>
+                <Text style={{ fontSize: 11, color: "#7C3AED", fontWeight: "700" }}>{seguimientosFiltrados?.length ?? 0} total{filtroInteres ? ` · ${filtroInteres}` : ""} {filtroEstado ? ` · ${filtroEstado}` : ""}</Text>
               </View>
             </View>
 
