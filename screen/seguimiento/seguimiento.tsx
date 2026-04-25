@@ -222,7 +222,14 @@ const filteredProspectos = prospectos.filter((x: any) => {
                   </ThemedText>
                 </View>
 
-             <View style={{ flexDirection: "row", gap: 14, alignItems: "flex-start" }}>
+            <View
+  style={{
+    flexDirection: isTablet ? "column" : "row",
+    gap: isTablet ? 8 : 14,
+    alignItems: "stretch",
+    width: isTablet ? 300 : "auto",
+  }}
+>
   {esAdmin && (
     <SelectorUsuario
       usuarios={usuariosFiltro}
@@ -267,7 +274,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
     flexDirection: isMobile ? "column" : "row",
     alignItems: isMobile ? "stretch" : "flex-start",
     justifyContent: "space-between",
-    marginBottom: isCompactMode ? 6 : 0,
+    marginBottom: isSearching ? 6 : 0,
   }}
 >
               <View
@@ -279,7 +286,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
               <ThemedText
   className="font-extrabold text-[#201b24]"
   style={{
-    fontSize: isCompactMode
+    fontSize: isSearching
       ? isMobile
         ? 28
         : isTablet
@@ -290,7 +297,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
         : isTablet
           ? 40
           : 58,
-    lineHeight: isCompactMode
+    lineHeight: isSearching
       ? isMobile
         ? 32
         : isTablet
@@ -306,7 +313,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
   Historial de{"\n"}Seguimiento
 </ThemedText>
 
-               {!isCompactMode && (
+               {!isSearching && (
   <ThemedText
     className="text-[#726b77]"
     style={{
@@ -347,7 +354,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
               </View>
             )}
 
-         {!isCompactMode && (
+           {!isSearching && (
   <View
     className="mt-8"
     style={{
@@ -382,7 +389,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
   </View>
 )}
 
-            <View className={isCompactMode ? "mt-5" : "mt-10"}>
+            <View className={isSearching ? "mt-5" : "mt-10"}>
               {!isMobile && !isTablet && (
   <View className="mb-4 flex-row items-center px-4">
                   <View style={{ width: "33%" }}>

@@ -457,21 +457,22 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                 </View>
               </View>
 
-              <View
-                style={{
-                  flexDirection: isPhone ? "column" : "row",
-                  gap: 10,
-                  width: isPhone ? "100%" : isTablet ? 260 : "auto",
-                }}
-              >
+             <View
+  style={{
+    flexDirection: isPhone ? "column" : "row",
+    gap: 10,
+    width: isPhone ? "100%" : isTablet ? 310 : "auto",
+  }}
+>
                 <Pressable
                   onPress={handleOpenMail}
                   disabled={!prospecto?.correo}
-                  className="rounded-2xl px-5 py-4"
+                  className="rounded-2xl py-4"
                   style={{
                     backgroundColor: "#ece9ee",
                     opacity: prospecto?.correo ? 1 : 0.6,
-                    minWidth: isPhone ? undefined : 140,
+                    minWidth: isPhone ? undefined : isTablet ? 145 : 140,
+                    paddingHorizontal: isTablet ? 14 : 20,
                     flex: 1,
                   }}
                 >
@@ -489,11 +490,12 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                 <Pressable
                    onPress={handleOpenWhatsApp}
                   disabled={!telefono}
-                  className="rounded-2xl px-5 py-4"
+                  className="rounded-2xl py-4"
                   style={{
                     backgroundColor: "#e7f8ee",
                     opacity: telefono ? 1 : 0.6,
-                    minWidth: isPhone ? undefined : 140,
+                   minWidth: isPhone ? undefined : isTablet ? 145 : 140,
+                   paddingHorizontal: isTablet ? 14 : 20,
                     flex: 1,
                   }}
                 >

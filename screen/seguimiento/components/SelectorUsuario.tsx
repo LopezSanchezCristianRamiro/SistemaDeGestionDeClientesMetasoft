@@ -42,7 +42,7 @@ export default function SelectorUsuario({
     <>
       <View
         style={{
-          width: isMobile ? "100%" : isTablet ? 300 : 340,
+          width: isMobile ? "100%" : isTablet ? "100%" : 360,
           alignSelf: "stretch",
           marginTop: 16,
         }}

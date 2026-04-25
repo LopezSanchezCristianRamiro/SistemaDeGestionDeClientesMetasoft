@@ -18,7 +18,7 @@ export default function Buscador({
   return (
     <View
       style={{
-        width: isMobile ? "100%" : isTablet ? 300 : 340,
+        width: isMobile ? "100%" : isTablet ? "100%" : 340,
         alignSelf: "stretch",
         marginTop: 16,
       }}
@@ -42,7 +42,7 @@ export default function Buscador({
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Nombre del Prospecto o de la Empresa"
+          placeholder="Nombre del Prospecto o Empresa"
           placeholderTextColor="#9b93a0"
           underlineColorAndroid="transparent"
           selectionColor="#d10a78"
