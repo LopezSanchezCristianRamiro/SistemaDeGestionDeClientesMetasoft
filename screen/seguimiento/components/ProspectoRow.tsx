@@ -39,14 +39,14 @@ function getEstadoColors(estado?: string) {
     };
   }
 
-  if (value === "CANCELADO") {
-    return {
-      bg: "#f1e8ee",
-      dot: "#8f8790",
-      text: "#5f5863",
-      label: "Cancelado",
-    };
-  }
+ if (value === "CANCELADO") {
+  return {
+    bg: "#f1e8ee",
+    dot: "#8f8790",
+    text: "#5f5863",
+    label: "Dado de Baja",
+  };
+}
 
   return {
     bg: "#ece7eb",

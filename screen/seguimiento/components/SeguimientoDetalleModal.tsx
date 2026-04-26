@@ -92,7 +92,6 @@ export default function SeguimientoDetalleModal({
   onClose,
   prospecto,
   onGuardarPaso,
-   onRefresh,
 }: Props) {
   const { width, height } = useWindowDimensions();
   const [anticipoLocal, setAnticipoLocal] = useState<number>(0);
@@ -228,7 +227,6 @@ const handleOpenWhatsApp = async () => {
   }, [prospecto]);
   const isPhone = width < 640;
 const isTablet = width >= 640 && width < 1024;
-const isDesktop = width >= 1024;
   const [openInteres, setOpenInteres] = useState(false);
   const [openEstado, setOpenEstado] = useState(false);
   const opcionesInteres = ["Bajo", "Medio", "Alto"];
@@ -280,7 +278,7 @@ const isDesktop = width >= 1024;
     const actual = (estadoSeguimiento || "").toUpperCase();
 
     if (actual === "EN PROCESO") return "Cerrado";
-    if (actual === "CERRADO") return "Cancelado";
+    if (actual === "CERRADO") return "Dar de baja";
     if (actual === "CANCELADO") return "En proceso";
 
     return "En proceso";
@@ -318,10 +316,9 @@ const isDesktop = width >= 1024;
       );
 
       setEstadoSeguimiento(nuevoEstado);
-await onRefresh?.();
       Alert.alert(
         "Correcto",
-        data?.message || `Estado actualizado a ${nuevoEstado}`,
+        `Estado actualizado a ${getEstadoLabel(nuevoEstado)}`
       );
     } catch (error: any) {
       Alert.alert("Error", error?.message || "No se pudo actualizar");
@@ -329,7 +326,13 @@ await onRefresh?.();
       setSavingEstado(false);
     }
   };
+const getEstadoLabel = (estado?: string) => {
+  const value = String(estado || "").trim().toUpperCase();
 
+  if (value === "CANCELADO") return "Dar de baja";
+
+  return estado || "En proceso";
+};
   const handleCerrarSeguimiento = () => {
     onClose();
   };
@@ -608,7 +611,7 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                       color: "#4f4755",
                     }}
                   >
-                    {savingEstado ? "Guardando..." : estado}
+                    {savingEstado ? "Guardando..." : getEstadoLabel(estado)}
                   </ThemedText>
 
                   <View
@@ -955,32 +958,32 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   padding: 14,
                 }}
               >
-                {opcionesInteres.map((item) => {
-                  const active = item === interesActual;
+         {opcionesInteres.map((item) => {
+  const active = item === interesActual;
 
-                  return (
-                    <Pressable
-                      key={item}
-                      onPress={() => handleActualizarInteres(item)}
-                      style={{
-                        paddingVertical: 16,
-                        borderRadius: 18,
-                        marginBottom: 8,
-                        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
-                      }}
-                    >
-                      <ThemedText
-                        className="text-center font-bold"
-                        style={{
-                          fontSize: 15,
-                          color: active ? "#d10a78" : "#5f5863",
-                        }}
-                      >
-                        {item}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
+  return (
+    <Pressable
+      key={item}
+      onPress={() => handleActualizarInteres(item)}
+      style={{
+        paddingVertical: 16,
+        borderRadius: 18,
+        marginBottom: 8,
+        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
+      }}
+    >
+      <ThemedText
+        className="text-center font-bold"
+        style={{
+          fontSize: 15,
+          color: active ? "#d10a78" : "#5f5863",
+        }}
+      >
+        {item}
+      </ThemedText>
+    </Pressable>
+  );
+})}
               </View>
             </Pressable>
           </Modal>
@@ -1010,32 +1013,32 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   padding: 14,
                 }}
               >
-                {opcionesEstado.map((item) => {
-                  const active = item === estadoSeguimiento;
+         {opcionesEstado.map((item) => {
+  const active = item === estadoSeguimiento;
 
-                  return (
-                    <Pressable
-                      key={item}
-                      onPress={() => handleActualizarEstado(item)}
-                      style={{
-                        paddingVertical: 16,
-                        borderRadius: 18,
-                        marginBottom: 8,
-                        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
-                      }}
-                    >
-                      <ThemedText
-                        className="text-center font-bold"
-                        style={{
-                          fontSize: 15,
-                          color: active ? "#d10a78" : "#5f5863",
-                        }}
-                      >
-                        {item}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
+  return (
+    <Pressable
+      key={item}
+      onPress={() => handleActualizarEstado(item)}
+      style={{
+        paddingVertical: 16,
+        borderRadius: 18,
+        marginBottom: 8,
+        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
+      }}
+    >
+      <ThemedText
+        className="text-center font-bold"
+        style={{
+          fontSize: 15,
+          color: active ? "#d10a78" : "#5f5863",
+        }}
+      >
+        {getEstadoLabel(item)}
+      </ThemedText>
+    </Pressable>
+  );
+})}
               </View>
             </Pressable>
           </Modal>

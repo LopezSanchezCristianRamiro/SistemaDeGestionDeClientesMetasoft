@@ -35,7 +35,10 @@ export default function Filtros({
     setFilter(value);
     setOpen(false);
   };
-
+const getEstadoLabel = (estado: FilterType) => {
+  if (estado === "Cancelado") return "Dado de Baja";
+  return estado;
+};
   return (
     <View
       style={{
@@ -68,7 +71,7 @@ export default function Filtros({
             color: "#4f4755",
           }}
         >
-          {filter}
+         {getEstadoLabel(filter)}
         </ThemedText>
 
        <View
@@ -131,7 +134,7 @@ export default function Filtros({
                       color: active ? "#d10a78" : "#5f5863",
                     }}
                   >
-                    {item}
+                   {getEstadoLabel(item)}
                   </ThemedText>
                 </Pressable>
               );

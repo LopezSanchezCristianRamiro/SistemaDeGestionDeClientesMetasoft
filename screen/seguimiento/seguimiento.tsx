@@ -274,7 +274,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
     flexDirection: isMobile ? "column" : "row",
     alignItems: isMobile ? "stretch" : "flex-start",
     justifyContent: "space-between",
-    marginBottom: isSearching ? 6 : 0,
+    marginBottom: isCompactMode ? 6 : 0,
   }}
 >
               <View
@@ -286,7 +286,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
               <ThemedText
   className="font-extrabold text-[#201b24]"
   style={{
-    fontSize: isSearching
+    fontSize: isCompactMode
       ? isMobile
         ? 28
         : isTablet
@@ -297,7 +297,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
         : isTablet
           ? 40
           : 58,
-    lineHeight: isSearching
+   lineHeight: isCompactMode
       ? isMobile
         ? 32
         : isTablet
@@ -313,7 +313,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
   Historial de{"\n"}Seguimiento
 </ThemedText>
 
-               {!isSearching && (
+               {!isCompactMode && (
   <ThemedText
     className="text-[#726b77]"
     style={{
@@ -354,7 +354,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
               </View>
             )}
 
-           {!isSearching && (
+          {!isCompactMode && (
   <View
     className="mt-8"
     style={{
@@ -389,7 +389,7 @@ const filteredProspectos = prospectos.filter((x: any) => {
   </View>
 )}
 
-            <View className={isSearching ? "mt-5" : "mt-10"}>
+            <View className={isCompactMode ? "mt-5" : "mt-10"}>
               {!isMobile && !isTablet && (
   <View className="mb-4 flex-row items-center px-4">
                   <View style={{ width: "33%" }}>
