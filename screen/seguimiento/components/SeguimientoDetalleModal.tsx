@@ -249,7 +249,7 @@ const isTablet = width >= 640 && width < 1024;
   const fechaInicio =
     prospecto?.fechaInicioSeguimiento || prospecto?.fechaInicio || "Sin fecha";
 
-  const proximoPaso = prospecto?.proximoPaso || "Sin próximo paso";
+  const proximoPaso = prospecto?.proximoPaso || "Sin proximo paso";
 
   const historialPasos = prospecto?.historialPasos || [];
 
