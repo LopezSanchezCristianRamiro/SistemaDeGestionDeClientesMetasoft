@@ -301,10 +301,11 @@ export default function ReportesScreen() {
                 <View style={{ flexDirection: "row", marginBottom: 8, paddingHorizontal: 4 }}>
                   {[
                     { label: "PROSPECTO",  w: 160 },
+                    ...(esAdmin ? [{ label: "CELULAR", w: 110 }] : [{ label: "INTERÉS", w: 90 }]),
                     { label: "SISTEMA",    w: 120 },
                     { label: "ADELANTO",   w: 90  },
                     { label: "AZAFATA",    w: 130 },
-                    ...(esAdmin ? [{ label: "CELULAR", w: 110 }] : [{ label: "INTERÉS", w: 90 }]),
+                    
                     { label: "ESTADO",     w: 130 },
                   ].map((col) => (
                     <Text key={col.label} style={{ width: col.w, fontSize: 9, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase" }}>
