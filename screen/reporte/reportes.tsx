@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getUsuarioData } from "../../storage/storage";
 import { CalendarPicker } from "./components/CalendarPicker";
+import { ProspectoDetalleModal } from "./components/ProspectoDetalleModal";
 import { useReportes } from "./hooks/useReporte";
 /* ─── helpers ─── */
 function formatMoney(n: number) {
@@ -53,7 +54,7 @@ function prevMonthLast() {
 
 export default function ReportesScreen() {
   const [userRol, setUserRol] = useState<string | null>(null);
-
+  const [idSeleccionado, setIdSeleccionado] = useState<number | null>(null);
   useEffect(() => {
     getUsuarioData().then((data) => {
       if (data?.rol) setUserRol(data.rol);
@@ -314,17 +315,18 @@ export default function ReportesScreen() {
 
                 {/* FILAS */}
                 {(mostrarTodosSeguimientos ? seguimientosFiltrados : seguimientosFiltrados?.slice(0, 5))?.map((s: any, i: number) => (
-                  <View
-                    key={s.id}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      paddingVertical: 10,
-                      paddingHorizontal: 4,
-                      borderTopWidth: i === 0 ? 0 : 1,
-                      borderTopColor: "#F3F4F6",
-                    }}
-                  >
+                  <TouchableOpacity
+                      key={s.id}
+                      onPress={() => setIdSeleccionado(s.id)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingVertical: 10,
+                        paddingHorizontal: 4,
+                        borderTopWidth: i === 0 ? 0 : 1,
+                        borderTopColor: "#F3F4F6",
+                      }}
+                    >
                     {/* Nombre + empresa */}
                     <View style={{ width: 160, flexDirection: "row", alignItems: "center", gap: 8 }}>
                       <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length], alignItems: "center", justifyContent: "center" }}>
@@ -419,7 +421,7 @@ export default function ReportesScreen() {
                         </Text>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
@@ -518,6 +520,11 @@ export default function ReportesScreen() {
 
         </ScrollView>
       )}
+      <ProspectoDetalleModal
+        idProspecto={idSeleccionado}
+        esAdmin={esAdmin}
+        onClose={() => setIdSeleccionado(null)}
+      />
     </SafeAreaView>
   );
 }
