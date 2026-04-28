@@ -88,7 +88,7 @@ export default function ProspectoRow({
   const nombreMostrar = nombreCompleto || "Sin nombre";
   const empresaMostrar = item.empresa || "Sin empresa";
   const interesMostrar = item.interes || "Sin interés";
-  const pasoMostrar = item.proximoPaso || item.siguientePaso || "Sin próximo paso";
+  const pasoMostrar = item.proximoPaso || item.siguientePaso || "Sin proximo paso";
   const sistemaMostrar =
     item.sistemaRequerido ||
     item.softwareRequerido ||
