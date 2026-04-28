@@ -1,3 +1,5 @@
+import Feather from '@expo/vector-icons/Feather';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -5,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from "react-native";
@@ -67,12 +70,27 @@ export default function ReportesScreen() {
   const [filtroInteres, setFiltroInteres] = useState<string | null>(null);
   const [filtroEstado, setFiltroEstado] = useState<string | null>(null); 
   const [mostrarTodosSeguimientos, setMostrarTodosSeguimientos] = useState(false);
-
+  const [buscarFiltro, setBuscarFiltro] = useState("");
+  
   const maxLeads = sistemasMasSolicitados?.[0]?.leads ?? 1;
   const seguimientosFiltrados = seguimientos?.filter((s: any) => {
     const passInteres = filtroInteres ? s.nivelInteres === filtroInteres : true;
     const passEstado  = filtroEstado  ? s.estadoSeguimientoReal === filtroEstado : true;
-    return passInteres && passEstado;
+
+    const termino = buscarFiltro.trim().toLowerCase();
+    if (termino.length === 0) return passInteres && passEstado;
+
+    const nombre  = String(s.nombre  ?? "").toLowerCase();
+    const empresa = String(s.empresa ?? "").toLowerCase();
+    const celular = String(s.celular ?? "").replace(/\D/g, "");
+    const terminoNumeros = termino.replace(/\D/g, "");
+
+    const passBuscar =
+      nombre.includes(termino) ||
+      empresa.includes(termino) ||
+      (terminoNumeros.length > 0 && celular.includes(terminoNumeros));
+
+    return passInteres && passEstado && passBuscar;
   });
 
   const conteoPorEstado = seguimientos?.reduce((acc: Record<string, number>, s: any) => {
@@ -217,6 +235,55 @@ export default function ReportesScreen() {
               </View>
             </ScrollView>
           </View>
+          
+          {esAdmin && (
+            <View style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              borderWidth: 1.5,
+              borderColor: buscarFiltro.length > 0 ? "#E1007E" : "#E5E7EB",
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              gap: 8,
+              marginBottom: 14,
+            }}>
+              <Feather name="search" size={16} color="#9CA3AF" />
+              <TextInput
+                placeholder="Buscar por nombre, empresa o celular..."
+                placeholderTextColor="#CBD5E1"
+                value={buscarFiltro}
+                onChangeText={(t) => { setBuscarFiltro(t); setMostrarTodosSeguimientos(false); }}
+                keyboardType="default"
+                underlineColorAndroid="transparent"
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  color: "#1E0A3C",
+                  paddingVertical: 0,
+                  borderWidth: 0,
+                  outline: "none",
+                }}
+              />
+              {buscarFiltro.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setBuscarFiltro("")}
+                  style={{
+                    backgroundColor: "#F3F4F6",
+                    borderRadius: 20,
+                    width: 20,
+                    height: 20,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 11, color: "#6B7280", fontWeight: "700" }}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
           {/* ── TABLA SEGUIMIENTOS ── */}
           <View style={styles.sectionCard}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -268,7 +335,50 @@ export default function ReportesScreen() {
                         <Text style={{ fontSize: 10, color: "#9CA3AF" }} numberOfLines={1}>{s.empresa}</Text>
                       </View>
                     </View>
-
+                    {esAdmin ? (
+                      <View style={{ width: 110 }}>
+                        {s.celular && s.celular !== "Sin número" ? (
+                          <TouchableOpacity
+                            onPress={() => {
+                              const numero = s.celular.replace(/\D/g, "");
+                              Linking.openURL(`https://wa.me/591${numero}`);
+                            }}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 6,
+                              backgroundColor: "#E7F9EF",
+                              borderRadius: 20,
+                              paddingHorizontal: 8,
+                              paddingVertical: 5,
+                              alignSelf: "flex-start",
+                            }}
+                          >
+                            <FontAwesome name="whatsapp" size={14} color="#25D366" />
+                            <Text style={{
+                              fontSize: 11,
+                              color: "#25D366",
+                              fontWeight: "700",
+                            }} numberOfLines={1}>
+                              {s.celular}
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>—</Text>
+                        )}
+                      </View>
+                    ) : (
+                      <View style={{ width: 90 }}>
+                        <View style={{
+                          backgroundColor: INTERES_COLORS[s.nivelInteres] + "20",
+                          borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start",
+                        }}>
+                          <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[s.nivelInteres] }}>
+                            {s.nivelInteres}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                     {/* Sistema */}
                     <View style={{ width: 120 }}>
                       <View style={{ backgroundColor: "#F0EEFF", borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start", maxWidth: 115 }}>
@@ -294,39 +404,6 @@ export default function ReportesScreen() {
                         <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>Sin asignar</Text>
                       )}
                     </View>
-
-                    {/* Celular solo para admin / Interés para el resto */}
-                    {esAdmin ? (
-                      <View style={{ width: 110 }}>
-                        {s.celular && s.celular !== "Sin número" ? (
-                          <TouchableOpacity
-                            onPress={() => {
-                              const numero = s.celular.replace(/\D/g, ""); // limpia caracteres raros
-                              Linking.openURL(`https://wa.me/591${numero}`);
-                            }}
-                            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-                          >
-                            <Text style={{ fontSize: 10 }}>📞</Text>
-                            <Text style={{ fontSize: 11, color: "#25D366", fontWeight: "600", textDecorationLine: "underline" }} numberOfLines={1}>
-                              {s.celular}
-                            </Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <Text style={{ fontSize: 11, color: "#CBD5E1", fontStyle: "italic" }}>—</Text>
-                        )}
-                      </View>
-                    ) : (
-                      <View style={{ width: 90 }}>
-                        <View style={{
-                          backgroundColor: INTERES_COLORS[s.nivelInteres] + "20",
-                          borderRadius: 20, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start",
-                        }}>
-                          <Text style={{ fontSize: 10, fontWeight: "700", color: INTERES_COLORS[s.nivelInteres] }}>
-                            {s.nivelInteres}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
 
                     {/* Estado */}
                     <View style={{ width: 130 }}>
