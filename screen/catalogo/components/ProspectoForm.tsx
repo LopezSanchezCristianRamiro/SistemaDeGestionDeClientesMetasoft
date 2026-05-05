@@ -303,6 +303,7 @@ export const ProspectoForm = memo(
               onBackdropPress={() => setPickerVisible(false)}
               lang="es"
               initialState={""}
+              inputPlaceholder="Buscar país..."
               style={{
                 modal: {
                   height: 450,
@@ -318,6 +319,7 @@ export const ProspectoForm = memo(
                   paddingHorizontal: 16,
                   backgroundColor: "#F7F2F8",
                   fontFamily: "Manrope_500Medium",
+                  color: "#1C1B1F",
                 },
                 countryName: { fontFamily: "Manrope_500Medium" },
                 dialCode: { fontFamily: "Manrope_700Bold" },
