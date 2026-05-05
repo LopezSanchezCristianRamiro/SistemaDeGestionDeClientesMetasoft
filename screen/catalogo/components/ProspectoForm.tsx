@@ -25,6 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { CountryPicker } from "react-native-country-codes-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Toast from "react-native-toast-message";
 import { ThemedText } from "../../../components/ThemedText";
@@ -49,7 +50,8 @@ interface FormState {
   primerApellido: string;
   segundoApellido: string;
   empresa: string;
-  celular: string;
+  countryCode: string;
+  numeroCelular: string;
   correo: string;
   interes: NivelInteres;
   tieneAdelanto: boolean;
@@ -62,7 +64,8 @@ const FORM_INICIAL: FormState = {
   primerApellido: "",
   segundoApellido: "",
   empresa: "",
-  celular: "",
+  countryCode: "591",
+  numeroCelular: "",
   correo: "",
   interes: "Medio",
   tieneAdelanto: false,
@@ -76,6 +79,8 @@ export const ProspectoForm = memo(
     const [userId, setUserId] = useState<number | null>(null);
     const [form, setForm] = useState<FormState>(FORM_INICIAL);
     const [qrModalVisible, setQrModalVisible] = useState(false);
+    const [pickerVisible, setPickerVisible] = useState(false);
+    const [pickerKey, setPickerKey] = useState(0);
     const montoInputRef = useRef<TextInput>(null);
     const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
     const [emailError, setEmailError] = useState<string | null>(null);
@@ -96,8 +101,16 @@ export const ProspectoForm = memo(
     }, [form.correo]);
 
     const isFormValid = useMemo(() => {
-      if (!form.nombres.trim() || !form.celular.trim()) return false;
+      if (!form.nombres.trim() || !form.numeroCelular.trim()) return false;
       if (form.correo.trim() && !isValidEmail(form.correo)) {
+        return false;
+      }
+
+      const onlyDigits = /^\d+$/;
+      if (
+        !onlyDigits.test(form.numeroCelular.trim()) ||
+        form.numeroCelular.trim().length < 7
+      ) {
         return false;
       }
       if (form.tieneAdelanto) {
@@ -109,7 +122,7 @@ export const ProspectoForm = memo(
 
     /** Valida campos obligatorios y muestra toast si faltan. */
     const validarCamposRequeridos = useCallback((): boolean => {
-      if (!form.nombres.trim() || !form.celular.trim()) {
+      if (!form.nombres.trim() || !form.numeroCelular.trim()) {
         Toast.show({
           type: "error",
           text1: "Atención",
@@ -118,7 +131,7 @@ export const ProspectoForm = memo(
         return false;
       }
       return true;
-    }, [form.nombres, form.celular]);
+    }, [form.nombres, form.numeroCelular]);
 
     const updateForm = useCallback((updates: Partial<FormState>) => {
       setForm((prev) => ({ ...prev, ...updates }));
@@ -161,7 +174,7 @@ export const ProspectoForm = memo(
         primerApellido: form.primerApellido,
         segundoApellido: form.segundoApellido,
         correoElectronico: form.correo,
-        celular: form.celular,
+        celular: `${form.countryCode}${form.numeroCelular.trim()}`,
         estadoInteres: form.interes,
         nombreEmpresa: form.empresa,
         adelanto: form.tieneAdelanto ? parseFloat(form.montoAdelanto) || 0 : 0,
@@ -237,27 +250,88 @@ export const ProspectoForm = memo(
               onChangeText={(text) => updateForm({ empresa: text })}
               placeholder="Nombre de la institución"
             />
-            <View className="flex-row gap-x-3">
-              <View className="flex-1">
-                <InputField
-                  label="Celular"
-                  required
-                  value={form.celular}
-                  onChangeText={(text) => updateForm({ celular: text })}
-                  keyboardType="phone-pad"
+
+            {/* ───── Sección Teléfono ───── */}
+            <ThemedText className="text-[10px] font-black uppercase text-surface-dark/40 mb-3 tracking-widest ml-1">
+              Teléfono
+            </ThemedText>
+            <View className="flex-row items-start mb-5">
+              {/* Botón selector (ya sin el CountryPicker dentro) */}
+              <TouchableOpacity
+                onPress={() => {
+                  setPickerKey((prev) => prev + 1);
+                  setPickerVisible(true);
+                }}
+                className="flex-row items-center bg-surface-variant/10 border border-surface-variant/20 rounded-xl px-4 py-3 mr-2"
+                accessibilityRole="button"
+                accessibilityLabel={`Prefijo +${form.countryCode}`}
+              >
+                <ThemedText className="text-surface-dark font-semibold text-base">
+                  +{form.countryCode}
+                </ThemedText>
+                <Ionicons
+                  name="chevron-down"
+                  size={14}
+                  color="#9CA3AF"
+                  style={{ marginLeft: 4 }}
                 />
-              </View>
+              </TouchableOpacity>
+
+              {/* Número local */}
               <View className="flex-1">
-                <InputField
-                  label="E-mail"
-                  value={form.correo}
-                  onChangeText={(text) => updateForm({ correo: text })}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  error={emailError}
+                <TextInput
+                  className="bg-surface-variant/10 p-4 rounded-xl border border-surface-variant/20 text-surface-dark text-base font-medium"
+                  placeholder="Número de celular"
+                  placeholderTextColor="#A1A1AA"
+                  value={form.numeroCelular}
+                  onChangeText={(text) => updateForm({ numeroCelular: text })}
+                  keyboardType="phone-pad"
+                  maxLength={15}
                 />
               </View>
             </View>
+
+            {/* CountryPicker fuera del botón */}
+            <CountryPicker
+              key={pickerKey}
+              show={pickerVisible}
+              pickerButtonOnPress={(item) => {
+                const cleanCode = item.dial_code.replace("+", "");
+                updateForm({ countryCode: cleanCode });
+                setPickerVisible(false);
+              }}
+              onBackdropPress={() => setPickerVisible(false)}
+              lang="es"
+              initialState={""}
+              style={{
+                modal: {
+                  height: 450,
+                  width: "100%",
+                  maxWidth: 500,
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 24,
+                  alignSelf: "center",
+                },
+                textInput: {
+                  height: 50,
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  backgroundColor: "#F7F2F8",
+                  fontFamily: "Manrope_500Medium",
+                },
+                countryName: { fontFamily: "Manrope_500Medium" },
+                dialCode: { fontFamily: "Manrope_700Bold" },
+                // ✅ La clave: forzar la fuente del sistema para que el emoji de la bandera se renderice
+                flag: {
+                  fontFamily: Platform.OS === "web" ? "system-ui" : undefined,
+                  fontSize: 20,
+                },
+                countryButtonStyles: {
+                  height: 56,
+                  paddingHorizontal: 16,
+                },
+              }}
+            />
 
             <SectionLabel>Grado de Interés</SectionLabel>
             <View className="flex-row bg-surface-variant/30 p-1.5 rounded-2xl mb-6">

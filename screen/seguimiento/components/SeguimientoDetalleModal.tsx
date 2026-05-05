@@ -47,7 +47,7 @@ type ProspectoDetalle = {
   proximoPaso?: string;
 
   historialPasos?: Paso[];
-   rubro?: string;
+  rubro?: string;
 };
 
 type Props = {
@@ -103,48 +103,48 @@ export default function SeguimientoDetalleModal({
   const [savingInteres, setSavingInteres] = useState(false);
   const [nombreUsuario, setNombreUsuario] = useState("el equipo");
 
-useEffect(() => {
-  getUsuarioData().then((data) => {
-    if (data) {
-      setNombreUsuario(`${data.nombres} ${data.apellido}`.trim());
+  useEffect(() => {
+    getUsuarioData().then((data) => {
+      if (data) {
+        setNombreUsuario(`${data.nombres} ${data.apellido}`.trim());
+      }
+    });
+  }, []);
+
+  const handleOpenWhatsApp = async () => {
+    if (!telefono) {
+      Alert.alert("Error", "El prospecto no tiene teléfono.");
+      return;
     }
-  });
-}, []);
 
-const handleOpenWhatsApp = async () => {
-  if (!telefono) {
-    Alert.alert("Error", "El prospecto no tiene teléfono.");
-    return;
-  }
+    const numero = telefono.replace(/\D/g, "");
 
-  const numero = telefono.replace(/\D/g, "");
+    if (!numero || numero.length < 8) {
+      Alert.alert("Error", "El número de teléfono no es válido.");
+      return;
+    }
 
-  if (!numero || numero.length < 8) {
-    Alert.alert("Error", "El número de teléfono no es válido.");
-    return;
-  }
+    const numberCountry = numero;
 
-  const numberCountry = numero.startsWith("591") ? numero : `591${numero}`;
+    const mensaje = encodeURIComponent(
+      `¡Hola ${nombreCompleto}! 😄 Soy ${nombreUsuario} de Metasoft. Solo quería escribirle para ver si sigue interesado en nuestro sistema de ${
+        prospecto?.rubro || "gestión"
+      }. ¡Estamos para ayudarle!`,
+    );
 
-  const mensaje = encodeURIComponent(
-    `¡Hola ${nombreCompleto}! 😄 Soy ${nombreUsuario} de Metasoft. Solo quería escribirle para ver si sigue interesado en nuestro sistema de ${
-      prospecto?.rubro || "gestión"
-    }. ¡Estamos para ayudarle!`
-  );
+    const appUrl = `whatsapp://send?phone=${numberCountry}&text=${mensaje}`;
+    const webUrl = `https://api.whatsapp.com/send?phone=${numberCountry}&text=${mensaje}`;
 
-  const appUrl = `whatsapp://send?phone=${numberCountry}&text=${mensaje}`;
-  const webUrl = `https://api.whatsapp.com/send?phone=${numberCountry}&text=${mensaje}`;
-
-  try {
-    await Linking.openURL(appUrl);
-  } catch {
     try {
-      await Linking.openURL(webUrl);
+      await Linking.openURL(appUrl);
     } catch {
-      Alert.alert("Error", "No se pudo abrir WhatsApp.");
+      try {
+        await Linking.openURL(webUrl);
+      } catch {
+        Alert.alert("Error", "No se pudo abrir WhatsApp.");
+      }
     }
-  }
-};
+  };
   const [showAdelantoModal, setShowAdelantoModal] = useState(false);
   const handleRegistrarAdelantoEfectivo = useCallback(
     async (monto: number) => {
@@ -226,7 +226,7 @@ const handleOpenWhatsApp = async () => {
     }
   }, [prospecto]);
   const isPhone = width < 640;
-const isTablet = width >= 640 && width < 1024;
+  const isTablet = width >= 640 && width < 1024;
   const [openInteres, setOpenInteres] = useState(false);
   const [openEstado, setOpenEstado] = useState(false);
   const opcionesInteres = ["Bajo", "Medio", "Alto"];
@@ -318,7 +318,7 @@ const isTablet = width >= 640 && width < 1024;
       setEstadoSeguimiento(nuevoEstado);
       Alert.alert(
         "Correcto",
-        `Estado actualizado a ${getEstadoLabel(nuevoEstado)}`
+        `Estado actualizado a ${getEstadoLabel(nuevoEstado)}`,
       );
     } catch (error: any) {
       Alert.alert("Error", error?.message || "No se pudo actualizar");
@@ -326,13 +326,15 @@ const isTablet = width >= 640 && width < 1024;
       setSavingEstado(false);
     }
   };
-const getEstadoLabel = (estado?: string) => {
-  const value = String(estado || "").trim().toUpperCase();
+  const getEstadoLabel = (estado?: string) => {
+    const value = String(estado || "")
+      .trim()
+      .toUpperCase();
 
-  if (value === "CANCELADO") return "Dar de baja";
+    if (value === "CANCELADO") return "Dar de baja";
 
-  return estado || "En proceso";
-};
+    return estado || "En proceso";
+  };
   const handleCerrarSeguimiento = () => {
     onClose();
   };
@@ -366,7 +368,7 @@ const getEstadoLabel = (estado?: string) => {
           <ScrollView
             contentContainerStyle={{
               paddingHorizontal: isPhone ? 16 : isTablet ? 18 : 22,
-paddingTop: isPhone ? 16 : 20,
+              paddingTop: isPhone ? 16 : 20,
               paddingBottom: 28,
             }}
             showsVerticalScrollIndicator={false}
@@ -374,7 +376,7 @@ paddingTop: isPhone ? 16 : 20,
             <View
               style={{
                 flexDirection: isPhone ? "column" : "row",
-alignItems: isPhone ? "flex-start" : "center",
+                alignItems: isPhone ? "flex-start" : "center",
                 justifyContent: "space-between",
                 gap: 12,
               }}
@@ -433,7 +435,7 @@ alignItems: isPhone ? "flex-start" : "center",
                   className="font-extrabold text-[#201b24]"
                   style={{
                     fontSize: isPhone ? 28 : isTablet ? 32 : 36,
-lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
+                    lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   }}
                 >
                   {nombreCompleto}
@@ -460,13 +462,13 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                 </View>
               </View>
 
-             <View
-  style={{
-    flexDirection: isPhone ? "column" : "row",
-    gap: 10,
-    width: isPhone ? "100%" : isTablet ? 310 : "auto",
-  }}
->
+              <View
+                style={{
+                  flexDirection: isPhone ? "column" : "row",
+                  gap: 10,
+                  width: isPhone ? "100%" : isTablet ? 310 : "auto",
+                }}
+              >
                 <Pressable
                   onPress={handleOpenMail}
                   disabled={!prospecto?.correo}
@@ -491,14 +493,14 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                 </Pressable>
 
                 <Pressable
-                   onPress={handleOpenWhatsApp}
+                  onPress={handleOpenWhatsApp}
                   disabled={!telefono}
                   className="rounded-2xl py-4"
                   style={{
                     backgroundColor: "#e7f8ee",
                     opacity: telefono ? 1 : 0.6,
-                   minWidth: isPhone ? undefined : isTablet ? 145 : 140,
-                   paddingHorizontal: isTablet ? 14 : 20,
+                    minWidth: isPhone ? undefined : isTablet ? 145 : 140,
+                    paddingHorizontal: isTablet ? 14 : 20,
                     flex: 1,
                   }}
                 >
@@ -518,21 +520,21 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
               </View>
             </View>
 
-          <View
-  style={{
-    marginTop: 24,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 16,
-    justifyContent: "space-between",
-  }}
->
+            <View
+              style={{
+                marginTop: 24,
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 16,
+                justifyContent: "space-between",
+              }}
+            >
               <View
                 className="rounded-[26px] p-5"
-              style={{
-  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
-  backgroundColor: "#efebef",
-}}
+                style={{
+                  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+                  backgroundColor: "#efebef",
+                }}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Interés actual
@@ -581,10 +583,10 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
               </View>
               <View
                 className="rounded-[26px] p-5"
-               style={{
-  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
-  backgroundColor: "#efebef",
-}}
+                style={{
+                  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+                  backgroundColor: "#efebef",
+                }}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Estado actual
@@ -674,10 +676,10 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
 
               <View
                 className="rounded-[26px] p-5"
-               style={{
-  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
-  backgroundColor: "#efebef",
-}}
+                style={{
+                  width: isPhone ? "100%" : isTablet ? "48%" : "24%",
+                  backgroundColor: "#efebef",
+                }}
               >
                 <ThemedText className="text-[12px] font-bold uppercase tracking-[1.2px] text-[#7a717c]">
                   Fecha de inicio
@@ -958,32 +960,32 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   padding: 14,
                 }}
               >
-         {opcionesInteres.map((item) => {
-  const active = item === interesActual;
+                {opcionesInteres.map((item) => {
+                  const active = item === interesActual;
 
-  return (
-    <Pressable
-      key={item}
-      onPress={() => handleActualizarInteres(item)}
-      style={{
-        paddingVertical: 16,
-        borderRadius: 18,
-        marginBottom: 8,
-        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
-      }}
-    >
-      <ThemedText
-        className="text-center font-bold"
-        style={{
-          fontSize: 15,
-          color: active ? "#d10a78" : "#5f5863",
-        }}
-      >
-        {item}
-      </ThemedText>
-    </Pressable>
-  );
-})}
+                  return (
+                    <Pressable
+                      key={item}
+                      onPress={() => handleActualizarInteres(item)}
+                      style={{
+                        paddingVertical: 16,
+                        borderRadius: 18,
+                        marginBottom: 8,
+                        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
+                      }}
+                    >
+                      <ThemedText
+                        className="text-center font-bold"
+                        style={{
+                          fontSize: 15,
+                          color: active ? "#d10a78" : "#5f5863",
+                        }}
+                      >
+                        {item}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
               </View>
             </Pressable>
           </Modal>
@@ -1013,32 +1015,32 @@ lineHeight: isPhone ? 32 : isTablet ? 36 : 40,
                   padding: 14,
                 }}
               >
-         {opcionesEstado.map((item) => {
-  const active = item === estadoSeguimiento;
+                {opcionesEstado.map((item) => {
+                  const active = item === estadoSeguimiento;
 
-  return (
-    <Pressable
-      key={item}
-      onPress={() => handleActualizarEstado(item)}
-      style={{
-        paddingVertical: 16,
-        borderRadius: 18,
-        marginBottom: 8,
-        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
-      }}
-    >
-      <ThemedText
-        className="text-center font-bold"
-        style={{
-          fontSize: 15,
-          color: active ? "#d10a78" : "#5f5863",
-        }}
-      >
-        {getEstadoLabel(item)}
-      </ThemedText>
-    </Pressable>
-  );
-})}
+                  return (
+                    <Pressable
+                      key={item}
+                      onPress={() => handleActualizarEstado(item)}
+                      style={{
+                        paddingVertical: 16,
+                        borderRadius: 18,
+                        marginBottom: 8,
+                        backgroundColor: active ? "#f8ddeb" : "#f7f4f8",
+                      }}
+                    >
+                      <ThemedText
+                        className="text-center font-bold"
+                        style={{
+                          fontSize: 15,
+                          color: active ? "#d10a78" : "#5f5863",
+                        }}
+                      >
+                        {getEstadoLabel(item)}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
               </View>
             </Pressable>
           </Modal>
