@@ -6,6 +6,7 @@ import {
   Alert,
   Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   View,
@@ -132,17 +133,24 @@ export default function SeguimientoDetalleModal({
       }. ¡Estamos para ayudarle!`,
     );
 
-    const appUrl = `whatsapp://send?phone=${numberCountry}&text=${mensaje}`;
     const webUrl = `https://api.whatsapp.com/send?phone=${numberCountry}&text=${mensaje}`;
+    const appUrl = `whatsapp://send?phone=${numberCountry}&text=${mensaje}`;
 
     try {
-      await Linking.openURL(appUrl);
-    } catch {
-      try {
-        await Linking.openURL(webUrl);
-      } catch {
-        Alert.alert("Error", "No se pudo abrir WhatsApp.");
+      if (Platform.OS === "web") {
+        window.open(webUrl, "_blank");
+        return;
       }
+
+      const supported = await Linking.canOpenURL(appUrl);
+
+      if (supported) {
+        await Linking.openURL(appUrl);
+      } else {
+        await Linking.openURL(webUrl);
+      }
+    } catch {
+      Alert.alert("Error", "No se pudo abrir WhatsApp.");
     }
   };
   const [showAdelantoModal, setShowAdelantoModal] = useState(false);
