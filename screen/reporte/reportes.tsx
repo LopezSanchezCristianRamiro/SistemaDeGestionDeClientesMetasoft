@@ -166,32 +166,34 @@ export default function ReportesScreen() {
               Reportes varios del sistema.
             </Text>
           </View>
-          <Pressable
-            onPress={handleExportClick}
-            disabled={isExporting}
-            style={{
-              paddingHorizontal: 14,
-              paddingVertical: 7,
-              borderRadius: 20,
-              backgroundColor: "#7C3AED",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            {isExporting ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <Feather name="download" size={14} color="#fff" />
-                <Text
-                  style={{ fontSize: 13, color: "#fff", fontWeight: "600" }}
-                >
-                  PDF
-                </Text>
-              </>
-            )}
-          </Pressable>
+          {esAdmin && (
+            <Pressable
+              onPress={handleExportClick}
+              disabled={isExporting}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 7,
+                borderRadius: 20,
+                backgroundColor: "#7C3AED",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              {isExporting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Feather name="download" size={14} color="#fff" />
+                  <Text
+                    style={{ fontSize: 13, color: "#fff", fontWeight: "600" }}
+                  >
+                    PDF
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          )}
 
           <Pressable
             onPress={refetch}
